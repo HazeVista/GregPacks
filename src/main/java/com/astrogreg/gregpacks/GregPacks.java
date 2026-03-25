@@ -1,5 +1,6 @@
 package com.astrogreg.gregpacks;
 
+import com.astrogreg.gregpacks.config.GregPacksConfig;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialEvent;
 import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialRegistryEvent;
@@ -29,6 +30,7 @@ public class GregPacks {
     public static final GTRegistrate REGISTRATE = GTRegistrate.create(MOD_ID);
 
     public GregPacks() {
+        init();
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         modEventBus.addListener(this::commonSetup);
@@ -47,6 +49,10 @@ public class GregPacks {
         GregPacksItems.init();
 
         REGISTRATE.registerRegistrate();
+    }
+
+    public static void init() {
+        GregPacksConfig.init();
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {}
