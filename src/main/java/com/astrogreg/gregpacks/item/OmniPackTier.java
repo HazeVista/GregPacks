@@ -1,10 +1,24 @@
 package com.astrogreg.gregpacks.item;
 
+import com.astrogreg.gregpacks.config.GregPacksConfig;
+
 public enum OmniPackTier {
 
-    BASIC("basic", 30, 200_000, 6, 32_000),
-    ADVANCED("advanced", 50, 1_000_000, 10, 128_000),
-    ELITE("elite", 100, 200_000_000, 16, 512_000);
+    BASIC("basic",
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.basicPack.basicPackItemSlots,
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.basicPack.basicPackEUStorage,
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.basicPack.basicPackUpgradeSlots,
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.basicPack.basicPackFluidStorage),
+    ADVANCED("advanced",
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.advancedPack.advancedPackItemSlots,
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.advancedPack.advancedPackEUStorage,
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.advancedPack.advancedPackUpgradeSlots,
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.advancedPack.advancedPackFluidStorage),
+    ELITE("elite",
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.elitePack.elitePackItemSlots,
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.elitePack.elitePackEUStorage,
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.elitePack.elitePackUpgradeSlots,
+            GregPacksConfig.INSTANCE.OmniPackBaseValues.elitePack.elitePackFluidStorage);
 
     private final String id;
     public final int defaultSlots;
