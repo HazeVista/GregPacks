@@ -1,10 +1,10 @@
 {
   "required": true,
-  "package": "com.example.examplemod.mixin",
+  "package": "com.astrogreg.gregpacks.mixin",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "mixins": [
-    "DummyMixin"
+    "Mixin"
   ],
   "client": [
   ],

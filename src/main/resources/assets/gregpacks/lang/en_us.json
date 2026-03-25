@@ -1,0 +1,10 @@
+{
+  "item.gregpacks.basic_omnipack": "Basic OmniPack",
+  "item.gregpacks.advanced_omnipack": "Advanced OmniPack",
+  "item.gregpacks.elite_omnipack": "Elite OmniPack",
+
+  "item.gregpacks.omnipack.tooltip.slots": "Slots: %s",
+  "item.gregpacks.omnipack.tooltip.energy": "Energy: %s EU",
+  "item.gregpacks.omnipack.tooltip.upgrades": "Max Upgrades: %s",
+  "item.gregpacks.omnipack.tooltip.fluid": "Fluid: %s mB"
+}
