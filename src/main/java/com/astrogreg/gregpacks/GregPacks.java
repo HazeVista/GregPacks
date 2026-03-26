@@ -1,6 +1,7 @@
 package com.astrogreg.gregpacks;
 
 import com.astrogreg.gregpacks.config.GregPacksConfig;
+import com.astrogreg.gregpacks.datagen.GregPacksDatagen;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialEvent;
 import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialRegistryEvent;
@@ -53,6 +54,7 @@ public class GregPacks {
 
     public static void init() {
         GregPacksConfig.init();
+        GregPacksDatagen.init();
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {}

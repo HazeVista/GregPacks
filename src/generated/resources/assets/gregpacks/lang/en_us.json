@@ -1,0 +1,16 @@
+{
+  "item.gregpacks.ev_module_base": "EV Module Base",
+  "item.gregpacks.hv_module_base": "HV Module Base",
+  "item.gregpacks.iv_module_base": "IV Module Base",
+  "item.gregpacks.luv_module_base": "LuV Module Base",
+  "item.gregpacks.lv_module_base": "LV Module Base",
+  "item.gregpacks.module_casting_mold": "Module Base Casting Mold",
+  "item.gregpacks.module_extruder_mold": "Module Base Extruder Mold",
+  "item.gregpacks.mv_module_base": "MV Module Base",
+  "item.gregpacks.omnipack.tooltip.energy": "Energy Capacity: %s EU",
+  "item.gregpacks.omnipack.tooltip.fluid": "Fluid: %s mB",
+  "item.gregpacks.omnipack.tooltip.max_upgrades": "Max Upgrades: %s",
+  "item.gregpacks.omnipack.tooltip.slots": "Upgrade Slots: %s",
+  "item.gregpacks.uv_module_base": "UV Module Base",
+  "item.gregpacks.zpm_module_base": "ZPM Module Base"
+}
