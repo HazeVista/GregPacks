@@ -94,7 +94,42 @@ public class GregPacksConfig {
 
     public static class UpgradeConfigs {
 
-
+        @Configurable
+        @Configurable.Comment( "Number of slots added by the Item Capacity Module I" )
+        public int itemModule1Bonus = 9;
+        @Configurable
+        @Configurable.Comment( "Number of slots added by the Item Capacity Module II" )
+        public int itemModule2Bonus = 18;
+        @Configurable
+        @Configurable.Comment( "Number of slots added by the Item Capacity Module III" )
+        public int itemModule3Bonus = 27;
+        @Configurable
+        @Configurable.Comment( "Tank multiplier for the Fluid Capacity Module I" )
+        public double fluidModule1Bonus = 2.00;
+        @Configurable
+        @Configurable.Comment( "Tank multiplier for the Fluid Capacity Module II" )
+        public double fluidModule2Bonus = 4.00;
+        @Configurable
+        @Configurable.Comment( "Tank multiplier for the Fluid Capacity Module III" )
+        public double fluidModule3Bonus = 8.00;
+        @Configurable
+        @Configurable.Comment( "EU capacity multiplier for the Energy Capacity Module I" )
+        public double energyModule1Bonus = 1.25;
+        @Configurable
+        @Configurable.Comment( "EU capacity multiplier for the Energy Capacity Module II" )
+        public double energyModule2Bonus = 1.50;
+        @Configurable
+        @Configurable.Comment( "EU capacity multiplier for the Energy Capacity Module III" )
+        public double energyModule3Bonus = 2.00;
+        @Configurable
+        @Configurable.Comment( "EU per tick cost of the Jetpack Module" )
+        public int jetpackEUCost = 30;
+        @Configurable
+        @Configurable.Comment( "Pickup radius in blocks of the Magnet Module I" )
+        public int magnetModule1Radius = 5;
+        @Configurable
+        @Configurable.Comment( "Pickup radius in blocks of the Magnet Module II" )
+        public int magnetModule2Radius = 10;
 
     }
 
