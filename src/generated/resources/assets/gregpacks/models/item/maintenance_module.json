@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gregpacks:item/zpm_module_base"
+    "layer0": "gregpacks:item/maintenance_module"
   }
 }

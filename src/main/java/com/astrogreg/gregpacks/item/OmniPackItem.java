@@ -30,11 +30,11 @@ public class OmniPackItem extends Item {
                                 @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag isAdvanced) {
         tooltipComponents.add(Component.translatable("item.gregpacks.omnipack.tooltip.slots",
                 tier.defaultSlots));
+        tooltipComponents.add(Component.translatable("item.gregpacks.omnipack.tooltip.fluid",
+                tier.defaultFluidStorage));
         tooltipComponents.add(Component.translatable("item.gregpacks.omnipack.tooltip.energy",
                 tier.defaultEnergyStorage));
         tooltipComponents.add(Component.translatable("item.gregpacks.omnipack.tooltip.upgrades",
                 tier.defaultMaxUpgrades));
-        tooltipComponents.add(Component.translatable("item.gregpacks.omnipack.tooltip.fluid",
-                tier.defaultFluidStorage));
     }
 }

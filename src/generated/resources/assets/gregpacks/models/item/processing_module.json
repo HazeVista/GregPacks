@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gregpacks:item/uv_module_base"
+    "layer0": "gregpacks:item/processing_module"
   }
 }
