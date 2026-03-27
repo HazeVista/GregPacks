@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "gregpacks:item/jetpack_module"
+    "layer0": "gregpacks:item/jetpack_module_2"
   }
 }

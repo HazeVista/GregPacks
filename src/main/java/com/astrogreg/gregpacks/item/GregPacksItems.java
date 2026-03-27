@@ -118,9 +118,13 @@ public class GregPacksItems {
             .item("feeding_module", GPItem::new)
             .lang("Feeding Module")
             .register();
-    public static final ItemEntry<GPItem> JETPACK_MODULE = GregPacks.REGISTRATE
-            .item("jetpack_module", GPItem::new)
-            .lang("Jetpack Module")
+    public static final ItemEntry<GPItem> JETPACK_MODULE_1 = GregPacks.REGISTRATE
+            .item("jetpack_module_1", GPItem::new)
+            .lang("Jetpack Module I")
+            .register();
+    public static final ItemEntry<GPItem> JETPACK_MODULE_2 = GregPacks.REGISTRATE
+            .item("jetpack_module_2", GPItem::new)
+            .lang("Jetpack Module II")
             .register();
     public static final ItemEntry<GPItem> MAINTENANCE_MODULE = GregPacks.REGISTRATE
             .item("maintenance_module", GPItem::new)
