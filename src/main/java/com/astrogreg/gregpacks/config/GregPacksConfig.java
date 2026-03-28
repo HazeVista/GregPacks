@@ -122,8 +122,11 @@ public class GregPacksConfig {
         @Configurable.Comment( "EU capacity multiplier for the Energy Capacity Module III" )
         public double energyModule3Bonus = 2.00;
         @Configurable
-        @Configurable.Comment( "EU per tick cost of the Jetpack Module" )
-        public int jetpackEUCost = 30;
+        @Configurable.Comment( "EU per tick cost of the Jetpack Module I" )
+        public int jetpackModule1EUCost = 30;
+        @Configurable
+        @Configurable.Comment( "EU per tick cost of the Jetpack Module II" )
+        public int jetpackModule2EUCost = 90;
         @Configurable
         @Configurable.Comment( "Pickup radius in blocks of the Magnet Module I" )
         public int magnetModule1Radius = 5;

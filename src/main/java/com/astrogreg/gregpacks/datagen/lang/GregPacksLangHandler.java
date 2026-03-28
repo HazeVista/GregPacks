@@ -40,8 +40,10 @@ public class GregPacksLangHandler {
                 "An upgrade module that adds a crafting table interface to your OmniPack");
         provider.add("item.gregpacks.feeding_module.tooltip",
                 "An upgrade module that allows your OmniPack to consume food for you automatically");
-        provider.add("item.gregpacks.jetpack_module.tooltip",
+        provider.add("item.gregpacks.jetpack_module_1.tooltip",
                 "An upgrade module that grants creative flight");
+        provider.add("item.gregpacks.jetpack_module_2.tooltip",
+                "An upgrade module that grants creative flight with speed configurability");
         provider.add("item.gregpacks.maintenance_module.tooltip",
                 "An upgrade module that allows you to use your OmniPack to satisfy maintenance requirements");
         provider.add("item.gregpacks.magnet_module_1.tooltip",
