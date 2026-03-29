@@ -69,7 +69,6 @@ public class GregPacksModuleBaseRecipes {
                 .outputItems(output)
                 .duration((int) material.getMass() * 2)
                 .EUt(24)
-                .addMaterialInfo(true)
                 .save(provider);
         FLUID_SOLIDFICATION_RECIPES.recipeBuilder("module_base_" + tier)
                 .inputFluids(material.getFluid(L * 4))

@@ -1,0 +1,51 @@
+package com.astrogreg.gregpacks.registry;
+
+import com.astrogreg.gregpacks.GregPacks;
+import com.astrogreg.gregpacks.block.OmniPackBlock;
+import com.astrogreg.gregpacks.item.OmniPackTier;
+
+import com.tterrag.registrate.util.entry.BlockEntry;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.item.Item;
+
+public class GregPacksBlocks {
+
+    public static final BlockEntry<OmniPackBlock> BASIC_OMNIPACK_BLOCK =
+            GregPacks.REGISTRATE.block("basic_omnipack",
+                            props -> new OmniPackBlock(OmniPackTier.BASIC, props))
+                    .properties(p -> p.strength(2f).sound(SoundType.METAL).noOcclusion())
+                    .item(OmniPackBlockItem::new)
+                    .build()
+                    .lang("Basic OmniPack")
+                    .register();
+
+    public static final BlockEntry<OmniPackBlock> ADVANCED_OMNIPACK_BLOCK =
+            GregPacks.REGISTRATE.block("advanced_omnipack",
+                            props -> new OmniPackBlock(OmniPackTier.ADVANCED, props))
+                    .properties(p -> p.strength(2f).sound(SoundType.METAL).noOcclusion())
+                    .item(OmniPackBlockItem::new)
+                    .build()
+                    .lang("Advanced OmniPack")
+                    .register();
+
+    public static final BlockEntry<OmniPackBlock> ELITE_OMNIPACK_BLOCK =
+            GregPacks.REGISTRATE.block("elite_omnipack",
+                            props -> new OmniPackBlock(OmniPackTier.ELITE, props))
+                    .properties(p -> p.strength(2f).sound(SoundType.METAL).noOcclusion())
+                    .item(OmniPackBlockItem::new)
+                    .build()
+                    .lang("Elite OmniPack")
+                    .register();
+
+    /** Get the BlockItem for a given tier. */
+    public static Item getItemForTier(OmniPackTier tier) {
+        return switch (tier) {
+            case BASIC    -> BASIC_OMNIPACK_BLOCK.asItem();
+            case ADVANCED -> ADVANCED_OMNIPACK_BLOCK.asItem();
+            case ELITE    -> ELITE_OMNIPACK_BLOCK.asItem();
+        };
+    }
+
+    public static void init() {}
+}
