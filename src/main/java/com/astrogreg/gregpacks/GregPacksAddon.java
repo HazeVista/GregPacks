@@ -1,6 +1,8 @@
 package com.astrogreg.gregpacks;
 
 import com.astrogreg.gregpacks.recipe.GregPacksModuleBaseRecipes;
+import com.astrogreg.gregpacks.recipe.GregPacksModuleRecipes;
+import com.astrogreg.gregpacks.recipe.GregPacksOmniPacksRecipes;
 import com.gregtechceu.gtceu.api.addon.GTAddon;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
@@ -33,7 +35,9 @@ public class GregPacksAddon implements IGTAddon {
 
     @Override
     public void addRecipes(Consumer<FinishedRecipe> provider) {
-         GregPacksModuleBaseRecipes.init(provider);
+        GregPacksModuleBaseRecipes.init(provider);
+        GregPacksModuleRecipes.init(provider);
+        GregPacksOmniPacksRecipes.init(provider);
     }
 
     @Override

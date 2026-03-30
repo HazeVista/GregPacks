@@ -19,14 +19,15 @@ public enum UpgradeType {
     ENERGY_CAPACITY_II,
     ENERGY_CAPACITY_III,
 
-    // Passive utility
+    // Passive Utility
     MAGNET_I,
     MAGNET_II,
     FEEDING,
     MAINTENANCE,
 
     // Active (implemented later)
-    JETPACK,
+    JETPACK_I,
+    JETPACK_II,
     CRAFTING,
     PROCESSING;
 }

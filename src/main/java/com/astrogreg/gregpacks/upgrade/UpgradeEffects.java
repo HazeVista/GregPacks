@@ -21,7 +21,8 @@ public class UpgradeEffects {
     public final int magnetRadius;
     public final boolean hasFeeding;
     public final boolean hasMaintenance;
-    public final boolean hasJetpack;
+    public final boolean hasJetpack1;
+    public final boolean hasJetpack2;
     public final boolean hasCrafting;
     public final boolean hasProcessing;
 
@@ -59,7 +60,8 @@ public class UpgradeEffects {
 
         this.hasFeeding     = installed.contains(UpgradeType.FEEDING);
         this.hasMaintenance = installed.contains(UpgradeType.MAINTENANCE);
-        this.hasJetpack     = installed.contains(UpgradeType.JETPACK);
+        this.hasJetpack1    = installed.contains(UpgradeType.JETPACK_I);
+        this.hasJetpack2    = installed.contains(UpgradeType.JETPACK_II);
         this.hasCrafting    = installed.contains(UpgradeType.CRAFTING);
         this.hasProcessing  = installed.contains(UpgradeType.PROCESSING);
     }

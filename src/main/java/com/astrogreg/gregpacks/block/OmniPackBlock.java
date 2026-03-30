@@ -1,7 +1,6 @@
 package com.astrogreg.gregpacks.block;
 
 import com.astrogreg.gregpacks.item.OmniPackTier;
-import com.astrogreg.gregpacks.registry.GregPacksBlockEntities;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,11 +15,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
-import com.astrogreg.gregpacks.inventory.OpenPackHelper;
 
 import org.jetbrains.annotations.Nullable;
 
-//
+@SuppressWarnings("all")
 public class OmniPackBlock extends BaseEntityBlock {
 
     private final OmniPackTier tier;

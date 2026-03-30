@@ -5,7 +5,7 @@ import com.astrogreg.gregpacks.item.UpgradeItem;
 import com.astrogreg.gregpacks.item.UpgradeType;
 import com.tterrag.registrate.util.entry.ItemEntry;
 
-// I moved this to another file, more clean tho.
+@SuppressWarnings("all")
 public class GregPacksUpgrades {
 
     // Item Capacity
@@ -56,9 +56,13 @@ public class GregPacksUpgrades {
             .item("feeding_module", p -> new UpgradeItem(UpgradeType.FEEDING, "item.gregpacks.feeding_module.tooltip"))
             .lang("Feeding Module").register();
 
-    public static final ItemEntry<UpgradeItem> JETPACK_MODULE = GregPacks.REGISTRATE
-            .item("jetpack_module", p -> new UpgradeItem(UpgradeType.JETPACK, "item.gregpacks.jetpack_module.tooltip"))
-            .lang("Jetpack Module").register();
+    public static final ItemEntry<UpgradeItem> JETPACK_MODULE_I = GregPacks.REGISTRATE
+            .item("jetpack_module_1", p -> new UpgradeItem(UpgradeType.JETPACK_I, "item.gregpacks.jetpack_module.tooltip"))
+            .lang("Jetpack Module I").register();
+
+    public static final ItemEntry<UpgradeItem> JETPACK_MODULE_II = GregPacks.REGISTRATE
+            .item("jetpack_module_2", p -> new UpgradeItem(UpgradeType.JETPACK_II, "item.gregpacks.jetpack_module.tooltip"))
+            .lang("Jetpack Module II").register();
 
     public static final ItemEntry<UpgradeItem> MAINTENANCE_MODULE = GregPacks.REGISTRATE
             .item("maintenance_module", p -> new UpgradeItem(UpgradeType.MAINTENANCE, "item.gregpacks.maintenance_module.tooltip"))

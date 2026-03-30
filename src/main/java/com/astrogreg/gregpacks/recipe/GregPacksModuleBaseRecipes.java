@@ -35,10 +35,10 @@ public class GregPacksModuleBaseRecipes {
 //        registerModuleBase(provider, "uv", GregPacksItems.UV_MODULE_BASE, GTMaterials.Tritanium);
 
         // extrusion/casting mold recipes
-        VanillaRecipeHelper.addShapedRecipe(provider, false, GregPacks.id("module_casting_mold"),
+        VanillaRecipeHelper.addShapedRecipe(provider, true, GregPacks.id("module_casting_mold"),
                 new ItemStack(GregPacksItems.MODULE_CASTING_MOLD),
                 "P  ", "   ", "h  ", 'P', GTItems.SHAPE_EMPTY);
-        FORMING_PRESS_RECIPES.recipeBuilder("copy_module_casting_mold")
+        FORMING_PRESS_RECIPES.recipeBuilder(GregPacks.id("copy_module_casting_mold"))
                 .inputItems(GTItems.SHAPE_EMPTY)
                 .notConsumable(GregPacksItems.MODULE_CASTING_MOLD)
                 .outputItems(GregPacksItems.MODULE_CASTING_MOLD)
@@ -46,10 +46,10 @@ public class GregPacksModuleBaseRecipes {
                 .EUt(22)
                 .save(provider);
 
-        VanillaRecipeHelper.addShapedRecipe(provider, false, GregPacks.id("module_extruder_mold"),
+        VanillaRecipeHelper.addShapedRecipe(provider, true, GregPacks.id("module_extruder_mold"),
                 new ItemStack(GregPacksItems.MODULE_EXTRUDER_MOLD),
                 "P  ", "   ", " P ", 'P', GTItems.SHAPE_EMPTY);
-        FORMING_PRESS_RECIPES.recipeBuilder("copy_module_extruder_mold")
+        FORMING_PRESS_RECIPES.recipeBuilder(GregPacks.id("copy_module_extruder_mold"))
                 .inputItems(GTItems.SHAPE_EMPTY)
                 .notConsumable(GregPacksItems.MODULE_EXTRUDER_MOLD)
                 .outputItems(GregPacksItems.MODULE_EXTRUDER_MOLD)
@@ -63,19 +63,21 @@ public class GregPacksModuleBaseRecipes {
         VanillaRecipeHelper.addShapedRecipe(provider, false, GregPacks.id(tier + "_module_base"),
                 new ItemStack(output), "   ", "PPf", "PPh",
                 'P', new MaterialEntry(TagPrefix.plate, material));
-        EXTRUDER_RECIPES.recipeBuilder("module_base_" + tier)
+        EXTRUDER_RECIPES.recipeBuilder(GregPacks.id("module_base_" + tier))
                 .inputItems(TagPrefix.ingot, material, 4)
                 .notConsumable(GregPacksItems.MODULE_EXTRUDER_MOLD)
                 .outputItems(output)
                 .duration((int) material.getMass() * 2)
                 .EUt(24)
+                .addMaterialInfo(true)
                 .save(provider);
-        FLUID_SOLIDFICATION_RECIPES.recipeBuilder("module_base_" + tier)
+        FLUID_SOLIDFICATION_RECIPES.recipeBuilder(GregPacks.id("module_base_" + tier))
                 .inputFluids(material.getFluid(L * 4))
                 .notConsumable(GregPacksItems.MODULE_CASTING_MOLD)
                 .outputItems(output)
                 .duration(200)
                 .EUt(24)
+                .addMaterialInfo(true)
                 .save(provider);
     }
 
