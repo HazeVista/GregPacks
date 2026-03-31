@@ -8,10 +8,10 @@ public class GregPacksLangHandler {
     public static void init(RegistrateLangProvider provider) {
 
         // OmniPack Base Values
-        provider.add("item.gregpacks.omnipack.tooltip.slots", "Upgrade Slots: %s");
-        provider.add("item.gregpacks.omnipack.tooltip.energy", "Energy Capacity: %s EU");
-        provider.add("item.gregpacks.omnipack.tooltip.upgrades", "Max Upgrades: %s");
-        provider.add("item.gregpacks.omnipack.tooltip.fluid", "Fluid: %s mB");
+        provider.add("item.gregpacks.omnipack.tooltip.slots", "§6Item Slots:§r %s");
+        provider.add("item.gregpacks.omnipack.tooltip.fluid", "§9Fluid Capacity:§r %s mB");
+        provider.add("item.gregpacks.omnipack.tooltip.energy", "§cEnergy Capacity:§r %s EU");
+        provider.add("item.gregpacks.omnipack.tooltip.upgrades", "§Max Upgrades:§r %s");
 
         // Molds
         provider.add("item.gregpacks.module_extruder_mold.tooltip", "Extruder shape for making Module Bases");

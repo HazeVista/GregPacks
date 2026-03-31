@@ -48,7 +48,7 @@ public class GregPacksModuleBaseRecipes {
 
         VanillaRecipeHelper.addShapedRecipe(provider, true, GregPacks.id("module_extruder_mold"),
                 new ItemStack(GregPacksItems.MODULE_EXTRUDER_MOLD),
-                "P  ", "   ", " P ", 'P', GTItems.SHAPE_EMPTY);
+                "P  ", "   ", " h ", 'P', GTItems.SHAPE_EMPTY);
         FORMING_PRESS_RECIPES.recipeBuilder(GregPacks.id("copy_module_extruder_mold"))
                 .inputItems(GTItems.SHAPE_EMPTY)
                 .notConsumable(GregPacksItems.MODULE_EXTRUDER_MOLD)

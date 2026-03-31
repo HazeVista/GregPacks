@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.item.ItemStack;
 
@@ -29,7 +28,7 @@ public class GregPacksModuleRecipes {
                 GregPacks.id("item_module_1"), new ItemStack(GregPacksUpgrades.ITEM_CAPACITY_I),
                 "ABA", "CDC", "ABA",
                 'A', new MaterialEntry(cableGtSingle, Tin),
-                'B', GTMachines.WOODEN_CRATE,
+                'B', GTMachines.WOODEN_CRATE.asStack(),
                 'C', GTItems.CONVEYOR_MODULE_LV,
                 'D', GregPacksItems.LV_MODULE_BASE);
 
@@ -64,7 +63,7 @@ public class GregPacksModuleRecipes {
                 GregPacks.id("fluid_module_1"), new ItemStack(GregPacksUpgrades.FLUID_CAPACITY_I),
                 "ABA", "CDC", "ABA",
                 'A', new MaterialEntry(cableGtSingle, Tin),
-                'B', GTMachines.WOODEN_DRUM,
+                'B', GTMachines.WOODEN_DRUM.asStack(),
                 'C', GTItems.ELECTRIC_PUMP_LV,
                 'D', GregPacksItems.LV_MODULE_BASE);
 
@@ -85,7 +84,7 @@ public class GregPacksModuleRecipes {
                 .inputItems(GregPacksItems.LUV_MODULE_BASE)
                 .inputItems(CustomTags.LuV_CIRCUITS)
                 .inputItems(GTMachines.TUNGSTENSTEEL_DRUM)
-                .inputItems(GTItems.ELECTRIC_PUMP_IV)
+                .inputItems(GTItems.ELECTRIC_PUMP_LuV)
                 .inputItems(cableGtSingle, NiobiumTitanium, 4)
                 .outputItems(GregPacksUpgrades.FLUID_CAPACITY_III)
                 .circuitMeta(32)
@@ -100,13 +99,14 @@ public class GregPacksModuleRecipes {
                 "ABA", "CDC", "ABA",
                 'A', new MaterialEntry(cableGtSingle, Tin),
                 'B', new MaterialEntry(plate, BatteryAlloy),
-                'C', GTItems.ELECTRIC_PUMP_LV,
+                'C', CustomTags.LV_BATTERIES,
                 'D', GregPacksItems.LV_MODULE_BASE);
 
         ASSEMBLER_RECIPES.recipeBuilder(GregPacks.id("energy_module_2"))
                 .inputItems(GregPacksItems.EV_MODULE_BASE)
                 .inputItems(CustomTags.EV_CIRCUITS)
                 .inputItems(CustomTags.EV_BATTERIES)
+                .inputItems(plate, BatteryAlloy)
                 .inputItems(cableGtSingle, Aluminium, 4)
                 .outputItems(GregPacksUpgrades.ENERGY_CAPACITY_II)
                 .circuitMeta(32)
@@ -119,6 +119,7 @@ public class GregPacksModuleRecipes {
                 .inputItems(GregPacksItems.LUV_MODULE_BASE)
                 .inputItems(CustomTags.LuV_CIRCUITS)
                 .inputItems(CustomTags.LuV_BATTERIES)
+                .inputItems(plate, BatteryAlloy)
                 .inputItems(cableGtSingle, NiobiumTitanium, 4)
                 .outputItems(GregPacksUpgrades.ENERGY_CAPACITY_III)
                 .circuitMeta(32)
@@ -191,9 +192,7 @@ public class GregPacksModuleRecipes {
                 .save(provider);
 
         VanillaRecipeHelper.addShapelessRecipe(provider, GregPacks.id("crafting_module"),
-                new ItemStack(GregPacksUpgrades.CRAFTING_MODULE),
-                GregPacksItems.LV_MODULE_BASE,
-                Blocks.CRAFTING_TABLE);
+                new ItemStack(GregPacksUpgrades.CRAFTING_MODULE), GregPacksItems.LV_MODULE_BASE, Blocks.CRAFTING_TABLE);
 
         ASSEMBLER_RECIPES.recipeBuilder(GregPacks.id("processing_module"))
                 .inputItems(GregPacksItems.HV_MODULE_BASE)
