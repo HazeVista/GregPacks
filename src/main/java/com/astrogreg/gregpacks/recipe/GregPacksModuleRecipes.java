@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Consumer;
@@ -190,9 +191,9 @@ public class GregPacksModuleRecipes {
                 .save(provider);
 
         VanillaRecipeHelper.addShapelessRecipe(provider, GregPacks.id("crafting_module"),
-                new ItemStack(GregPacksUpgrades.CRAFTING_MODULE), "AB",
-                'A', GregPacksItems.LV_MODULE_BASE,
-                'B', new ResourceLocation("minecraft", "crafting_table"));
+                new ItemStack(GregPacksUpgrades.CRAFTING_MODULE),
+                GregPacksItems.LV_MODULE_BASE,
+                Blocks.CRAFTING_TABLE);
 
         ASSEMBLER_RECIPES.recipeBuilder(GregPacks.id("processing_module"))
                 .inputItems(GregPacksItems.HV_MODULE_BASE)
