@@ -71,9 +71,9 @@ public class OmniPackBlockItem extends BlockItem {
                                 @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
         var tier = getBlock().getTier();
         tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.slots",    tier.defaultSlots));
+        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.fluid",    tier.defaultFluidStorage));
         tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.energy",   tier.defaultEnergyStorage));
         tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.upgrades", tier.defaultMaxUpgrades));
-        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.fluid",    tier.defaultFluidStorage));
         tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.place"));
     }
 }

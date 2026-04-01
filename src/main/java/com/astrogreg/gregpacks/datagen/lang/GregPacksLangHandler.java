@@ -7,11 +7,20 @@ public class GregPacksLangHandler {
 
     public static void init(RegistrateLangProvider provider) {
 
-        // OmniPack Base Values
+        // OmniPack Item
         provider.add("item.gregpacks.omnipack.tooltip.slots", "§6Item Slots:§r %s");
         provider.add("item.gregpacks.omnipack.tooltip.fluid", "§9Fluid Capacity:§r %s mB");
         provider.add("item.gregpacks.omnipack.tooltip.energy", "§cEnergy Capacity:§r %s EU");
-        provider.add("item.gregpacks.omnipack.tooltip.upgrades", "§Max Upgrades:§r %s");
+        provider.add("item.gregpacks.omnipack.tooltip.upgrades", "§aMax Upgrades:§r %s");
+        multilineLang(provider, "item.gregpacks.omnipack.tooltip.place",
+                "\n---------------------------\n\n§7Right-Click to open OmniPack GUI\nShift-Right-Click to place");
+
+        // OmniPack UI
+        provider.add("container.gregpacks.tab.inventory", "Omnipack Inventory");
+        provider.add("container.gregpacks.tab.upgrades", "Upgrade Modules");
+        provider.add("container.gregpacks.omnipack","OmniPack Inventory");
+        provider.add("container.inventory", "OmniPack Inventory");
+        provider.add("container.gregpacks.upgrades", "Upgrade Modules");
 
         // Molds
         provider.add("item.gregpacks.module_extruder_mold.tooltip", "Extruder shape for making Module Bases");
@@ -52,6 +61,11 @@ public class GregPacksLangHandler {
                 "An upgrade module that increases your pickup range with configurable range and filtering");
         provider.add("item.gregpacks.processing_module.tooltip",
                 "An upgrade module that can be combined with singleblock machines for portable processing in your OmniPack");
+
+
+        // keybinds
+        provider.add("key.gregpacks.open_omnipack", "Open OmniPack Inventory");
+        provider.add("key.category.gregpacks", "GregPacks");
 
     }
 

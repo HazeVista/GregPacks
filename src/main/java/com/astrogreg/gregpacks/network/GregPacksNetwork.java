@@ -8,6 +8,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 // Handles the registration of network messages for the mod.
+@SuppressWarnings("all")
 public class GregPacksNetwork {
 
     private static final String PROTOCOL = "1";

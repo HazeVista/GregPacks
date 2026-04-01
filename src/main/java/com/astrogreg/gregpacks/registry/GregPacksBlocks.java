@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.item.Item;
 
+@SuppressWarnings("all")
 public class GregPacksBlocks {
 
     public static final BlockEntry<OmniPackBlock> BASIC_OMNIPACK_BLOCK =
