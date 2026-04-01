@@ -27,7 +27,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
     public static final int PACK_START_Y = 22;
     public static final int COLS         = 9;
 
-    // Server-side constructor — receives real inventories and tier
+    // Server-side constructor
     public OmniPackMenu(int containerId, Inventory playerInventory,
                         OmniPackInventory packInventory, OmniPackInventory upgradeInventory,
                         OmniPackTier tier) {
@@ -35,25 +35,26 @@ public class OmniPackMenu extends AbstractContainerMenu {
         this.tier             = tier;
         this.upgradeInventory = upgradeInventory;
         this.maxUpgrades      = upgradeInventory.getContainerSize();
-
-        // Trust the passed inventory size — caller is responsible for correct size
-        this.packSlots     = packInventory.getContainerSize();
-        this.packInventory = packInventory;
+        this.packSlots        = packInventory.getContainerSize();
+        this.packInventory    = packInventory;
 
         addPackSlots();
         addUpgradeSlots();
         addPlayerSlots(playerInventory);
     }
 
-    // Client-side constructor — reads tier ordinal from buf
+    // Client-side constructor — reads real slot count from buf
+    // Buffer layout (written by OpenPackHelper):
+    //   [0] byte  — tier ordinal
+    //   [1] short — real pack slot count (base + upgrade bonuses)
+    //   [2] byte  — upgrade slot count
     public OmniPackMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         this(containerId, playerInventory,
-                new OmniPackInventory(OmniPackTier.values()[buf.readByte()].defaultSlots),
-                new OmniPackInventory(OmniPackTier.values()[buf.readByte()].defaultMaxUpgrades),
-                OmniPackTier.values()[buf.readByte()]); // third byte = tier ordinal
+                new OmniPackInventory(buf.readShort()),              // real slot count
+                new OmniPackInventory(buf.readByte()),               // upgrade slot count
+                OmniPackTier.values()[buf.readByte()]);              // tier ordinal
     }
 
-    // Slot registration helpers
     private void addPackSlots() {
         for (int i = 0; i < packSlots; i++) {
             int col = i % COLS;
@@ -91,7 +92,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
                         return true;
 
                     GregPacksConfig.UpgradeConfigs cfg =
-                            com.astrogreg.gregpacks.config.GregPacksConfig.INSTANCE.ModuleValues;
+                            GregPacksConfig.INSTANCE.ModuleValues;
                     int bonusSlots = switch (upgradeItem.getUpgradeType()) {
                         case ITEM_CAPACITY_I   -> cfg.itemModule1Bonus;
                         case ITEM_CAPACITY_II  -> cfg.itemModule2Bonus;
@@ -130,7 +131,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
         }
     }
 
-    // Shift-click
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         ItemStack result = ItemStack.EMPTY;
@@ -169,7 +169,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) { return true; }
 
-    // Accessors
     public OmniPackInventory getPackInventory()    { return packInventory; }
     public OmniPackInventory getUpgradeInventory() { return upgradeInventory; }
     public OmniPackTier getTier()                  { return tier; }

@@ -17,11 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/**
- * The OmniPackItem is the portable version of the OmniPackBlock. It can be used to open the OmniPack GUI
- * from the player's inventory, and can be placed as a block in the world. It shares the same tier and
- * capabilities as the block version.
- */
 public class OmniPackItem extends Item {
 
     private final OmniPackTier tier;

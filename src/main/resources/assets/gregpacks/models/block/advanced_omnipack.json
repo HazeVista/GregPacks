@@ -1,0 +1,7 @@
+{
+  "parent": "gregpacks:block/omnipack_base",
+  "textures": {
+    "pack": "gregpacks:item/advanced_omnipack",
+    "particle": "gregpacks:item/advanced_omnipack"
+  }
+}

@@ -5,8 +5,9 @@ import com.astrogreg.gregpacks.block.OmniPackBlock;
 import com.astrogreg.gregpacks.item.OmniPackTier;
 
 import com.tterrag.registrate.util.entry.BlockEntry;
+
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.item.Item;
 
 public class GregPacksBlocks {
@@ -15,7 +16,10 @@ public class GregPacksBlocks {
             GregPacks.REGISTRATE.block("basic_omnipack",
                             props -> new OmniPackBlock(OmniPackTier.BASIC, props))
                     .properties(p -> p.strength(2f).sound(SoundType.METAL).noOcclusion())
+                    .blockstate((ctx, prov) -> {})
                     .item(OmniPackBlockItem::new)
+                    .model((ctx, prov) -> prov.withExistingParent(ctx.getName(),
+                            new ResourceLocation("gregpacks", "block/basic_omnipack")))
                     .build()
                     .lang("Basic OmniPack")
                     .register();
@@ -24,7 +28,10 @@ public class GregPacksBlocks {
             GregPacks.REGISTRATE.block("advanced_omnipack",
                             props -> new OmniPackBlock(OmniPackTier.ADVANCED, props))
                     .properties(p -> p.strength(2f).sound(SoundType.METAL).noOcclusion())
+                    .blockstate((ctx, prov) -> {})
                     .item(OmniPackBlockItem::new)
+                    .model((ctx, prov) -> prov.withExistingParent(ctx.getName(),
+                            new ResourceLocation("gregpacks", "block/advanced_omnipack")))
                     .build()
                     .lang("Advanced OmniPack")
                     .register();
@@ -33,12 +40,14 @@ public class GregPacksBlocks {
             GregPacks.REGISTRATE.block("elite_omnipack",
                             props -> new OmniPackBlock(OmniPackTier.ELITE, props))
                     .properties(p -> p.strength(2f).sound(SoundType.METAL).noOcclusion())
+                    .blockstate((ctx, prov) -> {})
                     .item(OmniPackBlockItem::new)
+                    .model((ctx, prov) -> prov.withExistingParent(ctx.getName(),
+                            new ResourceLocation("gregpacks", "block/elite_omnipack")))
                     .build()
                     .lang("Elite OmniPack")
                     .register();
 
-    /** Get the BlockItem for a given tier. */
     public static Item getItemForTier(OmniPackTier tier) {
         return switch (tier) {
             case BASIC    -> BASIC_OMNIPACK_BLOCK.asItem();

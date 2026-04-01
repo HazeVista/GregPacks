@@ -24,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-// The OmniPackBlockItem is the item form of the OmniPackBlock. It can be used to place the block in the world,
 public class OmniPackBlockItem extends BlockItem {
 
     public OmniPackBlockItem(OmniPackBlock block, Properties properties) {
@@ -47,9 +46,9 @@ public class OmniPackBlockItem extends BlockItem {
             @NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand) {
         if (!player.isShiftKeyDown()) {
             if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
-                ItemStack stack  = player.getItemInHand(hand);
+                ItemStack stack   = player.getItemInHand(hand);
                 OmniPackTier tier = getBlock().getTier();
-                int slotIndex    = OpenPackHelper.findSlot(player, stack);
+                int slotIndex     = OpenPackHelper.findSlot(player, stack);
                 OpenPackHelper.open(serverPlayer, stack, tier, slotIndex);
             }
             return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide);

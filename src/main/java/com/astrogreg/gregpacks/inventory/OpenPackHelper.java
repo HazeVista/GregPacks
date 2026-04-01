@@ -16,7 +16,11 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Central helper for opening the OmniPack GUI from any context.
- * Handles inventory loading, slot counting, and packSlotIndex assignment.
+ *
+ * Buffer layout sent to client (must match OmniPackMenu client constructor):
+ *   [0] short — real pack slot count (base + upgrade bonuses)
+ *   [1] byte  — upgrade slot count (= tier.defaultMaxUpgrades)
+ *   [2] byte  — tier ordinal
  */
 public class OpenPackHelper {
 
@@ -24,7 +28,7 @@ public class OpenPackHelper {
         OmniPackInventory upgradeInv = OmniPackInventory.fromUpgradeItem(stack, tier.defaultMaxUpgrades);
         UpgradeEffects effects       = new UpgradeEffects(tier, upgradeInv);
 
-        // Load pack inventory with the real slot count (base + upgrade bonus)
+        // Load pack inventory with the real slot count (base + upgrade bonuses)
         OmniPackInventory inv = OmniPackInventory.fromItem(stack, effects.totalSlots);
 
         NetworkHooks.openScreen(player, new MenuProvider() {
@@ -41,13 +45,12 @@ public class OpenPackHelper {
                 return menu;
             }
         }, buf -> {
-            buf.writeByte(tier.ordinal()); // used by client for upgrade inv size
-            buf.writeByte(tier.ordinal()); // used by client for pack inv size
-            buf.writeByte(tier.ordinal()); // tier itself
+            buf.writeShort(effects.totalSlots);          // real pack slot count
+            buf.writeByte(tier.defaultMaxUpgrades);      // upgrade slot count
+            buf.writeByte(tier.ordinal());               // tier ordinal
         });
     }
 
-    // Find the slot index of the given ItemStack in the player's inventory. Returns -1 if not found.
     public static int findSlot(Player player, ItemStack stack) {
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             if (player.getInventory().getItem(i) == stack) return i;

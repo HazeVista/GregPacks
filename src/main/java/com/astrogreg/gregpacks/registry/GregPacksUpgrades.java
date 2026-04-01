@@ -57,11 +57,11 @@ public class GregPacksUpgrades {
             .lang("Feeding Module").register();
 
     public static final ItemEntry<UpgradeItem> JETPACK_MODULE_I = GregPacks.REGISTRATE
-            .item("jetpack_module_1", p -> new UpgradeItem(UpgradeType.JETPACK_I, "item.gregpacks.jetpack_module.tooltip"))
+            .item("jetpack_module_1", p -> new UpgradeItem(UpgradeType.JETPACK_I, "item.gregpacks.jetpack_module_1.tooltip"))
             .lang("Jetpack Module I").register();
 
     public static final ItemEntry<UpgradeItem> JETPACK_MODULE_II = GregPacks.REGISTRATE
-            .item("jetpack_module_2", p -> new UpgradeItem(UpgradeType.JETPACK_II, "item.gregpacks.jetpack_module.tooltip"))
+            .item("jetpack_module_2", p -> new UpgradeItem(UpgradeType.JETPACK_II, "item.gregpacks.jetpack_module_2.tooltip"))
             .lang("Jetpack Module II").register();
 
     public static final ItemEntry<UpgradeItem> MAINTENANCE_MODULE = GregPacks.REGISTRATE

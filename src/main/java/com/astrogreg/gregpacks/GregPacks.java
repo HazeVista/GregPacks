@@ -62,7 +62,9 @@ public class GregPacks {
         modEventBus.addGenericListener(MachineDefinition.class, this::registerMachines);
         modEventBus.addGenericListener(SoundEntry.class, this::registerSounds);
 
-        // BlockEntities still use DeferredRegister
+        // Classload blocks FIRST so GregPacksBlockEntities can reference them
+        GregPacksItems.init();
+        GregPacksBlocks.init();
         GregPacksMenus.MENUS.register(modEventBus);
         GregPacksBlockEntities.BLOCK_ENTITIES.register(modEventBus);
         modEventBus.register(GregPacksDataGenerators.class);
@@ -73,12 +75,7 @@ public class GregPacks {
         }
 
         MinecraftForge.EVENT_BUS.register(this);
-
-        // Classload — GTRegistrate handles blocks/items automatically
-        GregPacksItems.init();
-        GregPacksBlocks.init();
         GregPacksBlockEntities.init();
-
         REGISTRATE.registerRegistrate();
     }
 

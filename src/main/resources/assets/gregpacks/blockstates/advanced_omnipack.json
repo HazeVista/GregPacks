@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "gregpacks:block/advanced_omnipack" },
+    "facing=south": { "model": "gregpacks:block/advanced_omnipack", "y": 180 },
+    "facing=east":  { "model": "gregpacks:block/advanced_omnipack", "y": 90 },
+    "facing=west":  { "model": "gregpacks:block/advanced_omnipack", "y": 270 }
+  }
+}

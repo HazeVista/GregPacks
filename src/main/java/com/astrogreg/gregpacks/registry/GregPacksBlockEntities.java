@@ -9,14 +9,15 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
-/** * This class registers all block entities for the mod.
- * Each OmniPack tier has its own block entity type, which allows us to store tier-specific data and behavior.
- */
 public class GregPacksBlockEntities {
 
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
             DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, GregPacks.MOD_ID);
 
+    // Use suppliers (() -> block.get()) instead of block.get() directly.
+    // This avoids classloading GregPacksBlocks before it's ready — the supplier
+    // is only evaluated when the registry event fires, at which point all blocks
+    // are guaranteed to be registered.
     public static final RegistryObject<BlockEntityType<OmniPackBlockEntity>> BASIC_OMNIPACK_BE =
             BLOCK_ENTITIES.register("basic_omnipack", () ->
                     BlockEntityType.Builder.of(
@@ -46,5 +47,6 @@ public class GregPacksBlockEntities {
         };
     }
 
+    // Force classload — call from GregPacks constructor AFTER GregPacksBlocks.init()
     public static void init() {}
 }

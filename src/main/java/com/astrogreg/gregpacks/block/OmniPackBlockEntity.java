@@ -4,6 +4,7 @@ import com.astrogreg.gregpacks.inventory.OmniPackInventory;
 import com.astrogreg.gregpacks.inventory.OmniPackMenu;
 import com.astrogreg.gregpacks.item.OmniPackTier;
 import com.astrogreg.gregpacks.registry.GregPacksBlockEntities;
+import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import com.astrogreg.gregpacks.registry.GregPacksBlocks;
 
 import net.minecraft.core.BlockPos;
@@ -15,6 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.block.state.BlockState;
 
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +77,15 @@ public class OmniPackBlockEntity extends BlockEntity implements MenuProvider {
     @Override
     public AbstractContainerMenu createMenu(int windowId, @NotNull Inventory playerInv,
                                             @NotNull Player player) {
-        // Use the BE's own inventories — NOT new empty ones
+        // Resize packInventory to account for installed upgrade bonuses
+        UpgradeEffects effects = new UpgradeEffects(tier, upgradeInventory);
+        if (effects.totalSlots != packInventory.getContainerSize()) {
+            OmniPackInventory resized = new OmniPackInventory(effects.totalSlots);
+            for (int i = 0; i < Math.min(effects.totalSlots, packInventory.getContainerSize()); i++) {
+                resized.setItem(i, packInventory.getItem(i));
+            }
+            packInventory = resized;
+        }
         return new OmniPackMenu(windowId, playerInv, packInventory, upgradeInventory, tier);
     }
 
@@ -87,4 +97,10 @@ public class OmniPackBlockEntity extends BlockEntity implements MenuProvider {
     public OmniPackTier getTier()                     { return tier; }
     public OmniPackInventory getPackInventory()        { return packInventory; }
     public OmniPackInventory getUpgradeInventory()     { return upgradeInventory; }
+
+    @Override
+    public AABB getRenderBoundingBox() {
+        // Expand the culling AABB so Minecraft never skips rendering this BE
+        return new AABB(getBlockPos()).inflate(1.0);
+    }
 }
