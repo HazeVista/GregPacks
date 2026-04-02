@@ -74,6 +74,10 @@ public class OmniPackBlockItem extends BlockItem {
         tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.fluid",    tier.defaultFluidStorage));
         tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.energy",   tier.defaultEnergyStorage));
         tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.upgrades", tier.defaultMaxUpgrades));
-        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.place"));
+        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.place.0"));
+        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.place.1"));
+        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.place.2"));
+        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.place.3"));
+        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.place.4"));
     }
 }

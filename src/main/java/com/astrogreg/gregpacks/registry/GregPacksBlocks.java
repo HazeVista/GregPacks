@@ -22,7 +22,7 @@ public class GregPacksBlocks {
                     .model((ctx, prov) -> prov.withExistingParent(ctx.getName(),
                             new ResourceLocation("gregpacks", "block/basic_omnipack")))
                     .build()
-                    .lang("Basic OmniPack")
+                    .lang("§bBasic OmniPack")
                     .register();
 
     public static final BlockEntry<OmniPackBlock> ADVANCED_OMNIPACK_BLOCK =
@@ -34,7 +34,7 @@ public class GregPacksBlocks {
                     .model((ctx, prov) -> prov.withExistingParent(ctx.getName(),
                             new ResourceLocation("gregpacks", "block/advanced_omnipack")))
                     .build()
-                    .lang("Advanced OmniPack")
+                    .lang("§eAdvanced OmniPack")
                     .register();
 
     public static final BlockEntry<OmniPackBlock> ELITE_OMNIPACK_BLOCK =
@@ -46,7 +46,7 @@ public class GregPacksBlocks {
                     .model((ctx, prov) -> prov.withExistingParent(ctx.getName(),
                             new ResourceLocation("gregpacks", "block/elite_omnipack")))
                     .build()
-                    .lang("Elite OmniPack")
+                    .lang("§cElite OmniPack")
                     .register();
 
     public static Item getItemForTier(OmniPackTier tier) {

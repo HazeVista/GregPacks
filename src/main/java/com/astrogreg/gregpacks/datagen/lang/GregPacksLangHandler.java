@@ -13,7 +13,7 @@ public class GregPacksLangHandler {
         provider.add("item.gregpacks.omnipack.tooltip.energy", "§cEnergy Capacity:§r %s EU");
         provider.add("item.gregpacks.omnipack.tooltip.upgrades", "§aMax Upgrades:§r %s");
         multilineLang(provider, "item.gregpacks.omnipack.tooltip.place",
-                "\n---------------------------\n\n§7Right-Click to open OmniPack GUI\nShift-Right-Click to place");
+                "\n---------------------------\n\n§7Right-Click to open OmniPack GUI\n§7Shift-Right-Click to place");
 
         // OmniPack UI
         provider.add("container.gregpacks.tab.inventory", "Omnipack Inventory");
