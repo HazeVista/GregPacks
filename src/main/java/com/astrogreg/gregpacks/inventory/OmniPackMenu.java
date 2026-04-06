@@ -7,11 +7,13 @@ import com.astrogreg.gregpacks.registry.GregPacksMenus;
 import com.astrogreg.gregpacks.config.GregPacksConfig;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.level.ServerPlayer;
 
 public class OmniPackMenu extends AbstractContainerMenu {
 
@@ -21,6 +23,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
     private final int packSlots;
     private final int maxUpgrades;
     private int packSlotIndex = -1;
+    private ServerPlayer serverPlayer = null;
 
     public static final int SLOT_SIZE    = 18;
     public static final int PACK_START_X = 8;
@@ -45,14 +48,15 @@ public class OmniPackMenu extends AbstractContainerMenu {
 
     // Client-side constructor — reads real slot count from buf
     // Buffer layout (written by OpenPackHelper):
-    //   [0] byte  — tier ordinal
-    //   [1] short — real pack slot count (base + upgrade bonuses)
-    //   [2] byte  — upgrade slot count
     public OmniPackMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         this(containerId, playerInventory,
                 new OmniPackInventory(buf.readShort()),              // real slot count
                 new OmniPackInventory(buf.readByte()),               // upgrade slot count
                 OmniPackTier.values()[buf.readByte()]);              // tier ordinal
+    }
+
+    public void setServerPlayer(ServerPlayer player) {
+        this.serverPlayer = player;
     }
 
     private void addPackSlots() {
@@ -93,16 +97,31 @@ public class OmniPackMenu extends AbstractContainerMenu {
 
                     GregPacksConfig.UpgradeConfigs cfg =
                             GregPacksConfig.INSTANCE.ModuleValues;
-                    int bonusSlots = switch (upgradeItem.getUpgradeType()) {
+
+                    // Only item-capacity modules shrink the pack gui
+                    int thisBonus = switch (upgradeItem.getUpgradeType()) {
                         case ITEM_CAPACITY_I   -> cfg.itemModule1Bonus;
                         case ITEM_CAPACITY_II  -> cfg.itemModule2Bonus;
                         case ITEM_CAPACITY_III -> cfg.itemModule3Bonus;
                         default -> 0;
                     };
-                    if (bonusSlots == 0) return true;
+                    if (thisBonus == 0) return true;
+                    int slotsWithout = tier.defaultSlots;
+                    for (int j = 0; j < maxUpgrades; j++) {
+                        if (j == slotIdx) continue; // skip the module being removed
+                        ItemStack other = upgradeInvRef.getItem(j);
+                        if (other.isEmpty() || !(other.getItem() instanceof UpgradeItem otherUpgrade))
+                            continue;
+                        slotsWithout += switch (otherUpgrade.getUpgradeType()) {
+                            case ITEM_CAPACITY_I   -> cfg.itemModule1Bonus;
+                            case ITEM_CAPACITY_II  -> cfg.itemModule2Bonus;
+                            case ITEM_CAPACITY_III -> cfg.itemModule3Bonus;
+                            default -> 0;
+                        };
+                    }
 
-                    int newSlots = packSlots - bonusSlots;
-                    for (int j = newSlots; j < packSlots; j++) {
+                    // Slots [slotsWithout, packSlots) would disappear — they must be empty.
+                    for (int j = slotsWithout; j < packSlots; j++) {
                         if (!OmniPackMenu.this.packInventory.getItem(j).isEmpty())
                             return false;
                     }
@@ -110,6 +129,50 @@ public class OmniPackMenu extends AbstractContainerMenu {
                 }
             });
         }
+    }
+
+    @Override
+    public void slotsChanged(Container container) {
+        super.slotsChanged(container);
+
+        if (serverPlayer == null) return;
+        if (container != upgradeInventory) return;         // only care about upgrade changes
+
+        int newSlotCount = computeCurrentSlotCount();
+        if (newSlotCount == packSlots) return;
+
+        // Save current pack contents into the item before reopening,
+        // so nothing is lost during the GUI swap.
+        int slot = packSlotIndex;
+        if (slot < 0) return;
+
+        ItemStack packStack = serverPlayer.getInventory().getItem(slot);
+        if (packStack.isEmpty()) return;
+
+        packInventory.saveToItem(packStack);
+        upgradeInventory.saveUpgradesToItem(packStack);
+        serverPlayer.getInventory().setChanged();
+
+        // Schedule on the next server tick to avoid reopening mid-slot-change.
+        serverPlayer.getServer().execute(() ->
+                OpenPackHelper.open(serverPlayer, packStack, tier, slot));
+    }
+
+    // Recalculates total item slots based on the current upgrade inventory contents.
+    private int computeCurrentSlotCount() {
+        GregPacksConfig.UpgradeConfigs cfg = GregPacksConfig.INSTANCE.ModuleValues;
+        int total = tier.defaultSlots;
+        for (int i = 0; i < maxUpgrades; i++) {
+            ItemStack stack = upgradeInventory.getItem(i);
+            if (stack.isEmpty() || !(stack.getItem() instanceof UpgradeItem upgradeItem)) continue;
+            total += switch (upgradeItem.getUpgradeType()) {
+                case ITEM_CAPACITY_I   -> cfg.itemModule1Bonus;
+                case ITEM_CAPACITY_II  -> cfg.itemModule2Bonus;
+                case ITEM_CAPACITY_III -> cfg.itemModule3Bonus;
+                default -> 0;
+            };
+        }
+        return total;
     }
 
     private void addPlayerSlots(Inventory playerInventory) {

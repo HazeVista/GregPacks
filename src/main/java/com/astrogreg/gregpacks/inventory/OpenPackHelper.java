@@ -42,6 +42,7 @@ public class OpenPackHelper {
                     int windowId, @NotNull Inventory playerInv, @NotNull Player p) {
                 OmniPackMenu menu = new OmniPackMenu(windowId, playerInv, inv, upgradeInv, tier);
                 menu.setPackSlotIndex(slotIndex);
+                menu.setServerPlayer(player);
                 return menu;
             }
         }, buf -> {
