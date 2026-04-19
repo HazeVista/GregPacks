@@ -60,5 +60,7 @@
   "item.gregpacks.processing_module": "Processing Module",
   "item.gregpacks.processing_module.tooltip": "An upgrade module that can be combined with singleblock machines for portable processing in your OmniPack",
   "key.category.gregpacks": "GregPacks",
-  "key.gregpacks.open_omnipack": "Open OmniPack Inventory"
+  "key.gregpacks.open_omnipack": "Open OmniPack Inventory",
+  "message.gregpacks.maintenance_failed": "\"Some problems fixed, missing tools in pack!\"",
+  "message.gregpacks.maintenance_fixed": "\"Maintenance fixed!\""
 }

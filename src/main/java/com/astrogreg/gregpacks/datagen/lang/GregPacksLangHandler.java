@@ -60,6 +60,13 @@ public class GregPacksLangHandler {
         provider.add("item.gregpacks.processing_module.tooltip",
                 "An upgrade module that can be combined with singleblock machines for portable processing in your OmniPack");
 
+        // Messages
+        provider.add("message.gregpacks.maintenance_fixed",
+                "\"Maintenance fixed!\"");
+
+        provider.add("message.gregpacks.maintenance_failed",
+                "\"Some problems fixed, missing tools in pack!\"");
+
         // keybinds
         provider.add("key.gregpacks.open_omnipack", "Open OmniPack Inventory");
         provider.add("key.category.gregpacks", "GregPacks");

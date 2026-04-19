@@ -60,5 +60,7 @@
   "item.gregpacks.processing_module": "ǝןnpoW buıssǝɔoɹԀ",
   "item.gregpacks.processing_module.tooltip": "ʞɔɐԀıuɯO ɹnoʎ uı buıssǝɔoɹd ǝןqɐʇɹod ɹoɟ sǝuıɥɔɐɯ ʞɔoןqǝןbuıs ɥʇıʍ pǝuıqɯoɔ ǝq uɐɔ ʇɐɥʇ ǝןnpoɯ ǝpɐɹbdn uⱯ",
   "key.category.gregpacks": "sʞɔɐԀbǝɹ⅁",
-  "key.gregpacks.open_omnipack": "ʎɹoʇuǝʌuI ʞɔɐԀıuɯO uǝdO"
+  "key.gregpacks.open_omnipack": "ʎɹoʇuǝʌuI ʞɔɐԀıuɯO uǝdO",
+  "message.gregpacks.maintenance_failed": "\"¡ʞɔɐd uı sןooʇ buıssıɯ 'pǝxıɟ sɯǝןqoɹd ǝɯoS\"",
+  "message.gregpacks.maintenance_fixed": "\"¡pǝxıɟ ǝɔuɐuǝʇuıɐW\""
 }
