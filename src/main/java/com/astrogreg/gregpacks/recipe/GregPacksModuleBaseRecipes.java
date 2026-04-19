@@ -1,16 +1,18 @@
 package com.astrogreg.gregpacks.recipe;
 
-import com.astrogreg.gregpacks.GregPacks;
-import com.astrogreg.gregpacks.item.GregPacksItems;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
+
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
+
+import com.astrogreg.gregpacks.GregPacks;
+import com.astrogreg.gregpacks.item.GregPacksItems;
 
 import java.util.function.Consumer;
 
@@ -21,7 +23,6 @@ import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.*;
 public class GregPacksModuleBaseRecipes {
 
     public static void init(Consumer<FinishedRecipe> provider) {
-
         // Module Base recipes
         // tier, module base item, material
         registerModuleBase(provider, "lv", GregPacksItems.LV_MODULE_BASE, GTMaterials.Steel);
@@ -30,9 +31,9 @@ public class GregPacksModuleBaseRecipes {
         registerModuleBase(provider, "ev", GregPacksItems.EV_MODULE_BASE, GTMaterials.Titanium);
         registerModuleBase(provider, "iv", GregPacksItems.IV_MODULE_BASE, GTMaterials.TungstenSteel);
         registerModuleBase(provider, "luv", GregPacksItems.LUV_MODULE_BASE, GTMaterials.HSSE);
-//        These are commented out rn bc we don't have a use for them at the moment
-//        registerModuleBase(provider, "zpm", GregPacksItems.ZPM_MODULE_BASE, GTMaterials.NaquadahAlloy);
-//        registerModuleBase(provider, "uv", GregPacksItems.UV_MODULE_BASE, GTMaterials.Tritanium);
+        // These are commented out rn bc we don't have a use for them at the moment
+        // registerModuleBase(provider, "zpm", GregPacksItems.ZPM_MODULE_BASE, GTMaterials.NaquadahAlloy);
+        // registerModuleBase(provider, "uv", GregPacksItems.UV_MODULE_BASE, GTMaterials.Tritanium);
 
         // extrusion/casting mold recipes
         VanillaRecipeHelper.addShapedRecipe(provider, true, GregPacks.id("module_casting_mold"),
@@ -80,5 +81,4 @@ public class GregPacksModuleBaseRecipes {
                 .addMaterialInfo(true)
                 .save(provider);
     }
-
 }

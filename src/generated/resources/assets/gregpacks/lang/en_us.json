@@ -6,7 +6,6 @@
   "container.gregpacks.tab.inventory": "Omnipack Inventory",
   "container.gregpacks.tab.upgrades": "Upgrade Modules",
   "container.gregpacks.upgrades": "Upgrade Modules",
-  "container.inventory": "OmniPack Inventory",
   "item.gregpacks.crafting_module": "Crafting Module",
   "item.gregpacks.crafting_module.tooltip": "An upgrade module that adds a crafting table interface to your OmniPack",
   "item.gregpacks.energy_module_1": "Energy Capacity Module I",

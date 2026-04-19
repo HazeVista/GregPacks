@@ -6,7 +6,6 @@ import com.tterrag.registrate.providers.RegistrateLangProvider;
 public class GregPacksLangHandler {
 
     public static void init(RegistrateLangProvider provider) {
-
         // OmniPack Item
         provider.add("item.gregpacks.omnipack.tooltip.slots", "§6Item Slots:§r %s");
         provider.add("item.gregpacks.omnipack.tooltip.fluid", "§9Fluid Capacity:§r %s mB");
@@ -18,8 +17,7 @@ public class GregPacksLangHandler {
         // OmniPack UI
         provider.add("container.gregpacks.tab.inventory", "Omnipack Inventory");
         provider.add("container.gregpacks.tab.upgrades", "Upgrade Modules");
-        provider.add("container.gregpacks.omnipack","OmniPack Inventory");
-        provider.add("container.inventory", "OmniPack Inventory");
+        provider.add("container.gregpacks.omnipack", "OmniPack Inventory");
         provider.add("container.gregpacks.upgrades", "Upgrade Modules");
 
         // Molds
@@ -62,11 +60,9 @@ public class GregPacksLangHandler {
         provider.add("item.gregpacks.processing_module.tooltip",
                 "An upgrade module that can be combined with singleblock machines for portable processing in your OmniPack");
 
-
         // keybinds
         provider.add("key.gregpacks.open_omnipack", "Open OmniPack Inventory");
         provider.add("key.category.gregpacks", "GregPacks");
-
     }
 
     protected static void multilineLang(RegistrateLangProvider provider, String key, String multiline) {
@@ -83,5 +79,4 @@ public class GregPacksLangHandler {
     protected static String getSubKey(String key, int index) {
         return key + "." + index;
     }
-
 }

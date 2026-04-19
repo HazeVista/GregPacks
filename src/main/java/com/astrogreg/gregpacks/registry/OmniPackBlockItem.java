@@ -1,10 +1,5 @@
 package com.astrogreg.gregpacks.registry;
 
-import com.astrogreg.gregpacks.block.OmniPackBlock;
-import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
-import com.astrogreg.gregpacks.inventory.OpenPackHelper;
-import com.astrogreg.gregpacks.item.OmniPackTier;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,15 +14,26 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
+import com.astrogreg.gregpacks.block.OmniPackBlock;
+import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
+import com.astrogreg.gregpacks.inventory.OpenPackHelper;
+import com.astrogreg.gregpacks.item.OmniPackTier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.List;
 
-public class OmniPackBlockItem extends BlockItem {
+public class OmniPackBlockItem extends BlockItem implements ICurioItem {
 
     public OmniPackBlockItem(OmniPackBlock block, Properties properties) {
         super(block, properties);
+    }
+
+    @Override
+    public boolean canEquip(SlotContext slotContext, ItemStack stack) {
+        return slotContext.identifier().equals("back");
     }
 
     @Override
@@ -43,12 +49,13 @@ public class OmniPackBlockItem extends BlockItem {
 
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(
-            @NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand) {
+                                                           @NotNull Level level, @NotNull Player player,
+                                                           @NotNull InteractionHand hand) {
         if (!player.isShiftKeyDown()) {
             if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
-                ItemStack stack   = player.getItemInHand(hand);
+                ItemStack stack = player.getItemInHand(hand);
                 OmniPackTier tier = getBlock().getTier();
-                int slotIndex     = OpenPackHelper.findSlot(player, stack);
+                int slotIndex = OpenPackHelper.findSlot(player, stack);
                 OpenPackHelper.open(serverPlayer, stack, tier, slotIndex);
             }
             return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide);
@@ -70,9 +77,9 @@ public class OmniPackBlockItem extends BlockItem {
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level,
                                 @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
         var tier = getBlock().getTier();
-        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.slots",    tier.defaultSlots));
-        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.fluid",    tier.defaultFluidStorage));
-        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.energy",   tier.defaultEnergyStorage));
+        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.slots", tier.defaultSlots));
+        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.fluid", tier.defaultFluidStorage));
+        tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.energy", tier.defaultEnergyStorage));
         tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.upgrades", tier.defaultMaxUpgrades));
         tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.place.0"));
         tooltip.add(Component.translatable("item.gregpacks.omnipack.tooltip.place.1"));

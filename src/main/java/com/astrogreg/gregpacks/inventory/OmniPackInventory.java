@@ -8,9 +8,9 @@ import net.minecraft.world.item.ItemStack;
 
 public class OmniPackInventory extends SimpleContainer {
 
-    private static final String TAG_ITEMS    = "Items";
+    private static final String TAG_ITEMS = "Items";
     private static final String TAG_UPGRADES = "Upgrades";
-    private static final String TAG_SLOT     = "Slot";
+    private static final String TAG_SLOT = "Slot";
 
     public OmniPackInventory(int slots) {
         super(slots);

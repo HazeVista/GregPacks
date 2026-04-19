@@ -22,7 +22,7 @@ public class UpgradeItem extends Item {
 
     public UpgradeItem(UpgradeType upgradeType, String descriptionKey) {
         super(new Item.Properties().stacksTo(1));
-        this.upgradeType    = upgradeType;
+        this.upgradeType = upgradeType;
         this.descriptionKey = descriptionKey;
     }
 
