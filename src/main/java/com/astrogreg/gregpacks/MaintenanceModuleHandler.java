@@ -1,16 +1,10 @@
 package com.astrogreg.gregpacks;
 
-import com.astrogreg.gregpacks.inventory.OmniPackInventory;
-import com.astrogreg.gregpacks.item.OmniPackItem;
-import com.astrogreg.gregpacks.item.OmniPackTier;
-import com.astrogreg.gregpacks.registry.OmniPackBlockItem;
-import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
-
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
-import com.gregtechceu.gtceu.common.machine.multiblock.part.MaintenanceHatchPartMachine;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.common.machine.multiblock.part.MaintenanceHatchPartMachine;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -19,6 +13,12 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import com.astrogreg.gregpacks.inventory.OmniPackInventory;
+import com.astrogreg.gregpacks.item.OmniPackItem;
+import com.astrogreg.gregpacks.item.OmniPackTier;
+import com.astrogreg.gregpacks.registry.OmniPackBlockItem;
+import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 
 @Mod.EventBusSubscriber(modid = GregPacks.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class MaintenanceModuleHandler {
@@ -31,6 +31,7 @@ public class MaintenanceModuleHandler {
         ItemStack packStack = findPackWithMaintenance(player);
         if (packStack == null) return;
 
+        // Check if the block is a maintenance hatch with problems
         BlockEntity be = player.level().getBlockEntity(event.getPos());
         if (!(be instanceof IMachineBlockEntity machineBE)) return;
         MetaMachine machine = machineBE.getMetaMachine();
@@ -40,7 +41,8 @@ public class MaintenanceModuleHandler {
         byte problems = hatch.getMaintenanceProblems();
         OmniPackTier tier = getTier(packStack);
         OmniPackInventory packInv = OmniPackInventory.fromItem(packStack,
-                new UpgradeEffects(tier, OmniPackInventory.fromUpgradeItem(packStack, tier.defaultMaxUpgrades)).totalSlots);
+                new UpgradeEffects(tier,
+                        OmniPackInventory.fromUpgradeItem(packStack, tier.defaultMaxUpgrades)).totalSlots);
 
         boolean allFixed = true;
         for (int i = 0; i < 6; i++) {
@@ -61,7 +63,7 @@ public class MaintenanceModuleHandler {
 
         boolean anyToolFound = false;
         for (int i = 0; i < 6; i++) {
-            if (((problems >> i) & 1) == 1) continue; // ya arreglado
+            if (((problems >> i) & 1) == 1) continue; // Already fixed, skip
             GTToolType required = getToolForProblem(i);
             if (findToolInPack(packInv, required) != null) {
                 anyToolFound = true;
@@ -104,19 +106,20 @@ public class MaintenanceModuleHandler {
         return null;
     }
 
+    // Finds a pack with the maintenance module, prioritizing equipped packs
     private static ItemStack findPackWithMaintenance(Player player) {
         if (net.minecraftforge.fml.ModList.get().isLoaded("curios")) {
             ItemStack curiosPack = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
-                .map(inv -> {
-                    var slots = inv.getCurios();
-                    if (!slots.containsKey("back")) return ItemStack.EMPTY;
-                    var handler = slots.get("back").getStacks();
-                    for (int i = 0; i < handler.getSlots(); i++) {
-                        ItemStack s = handler.getStackInSlot(i);
-                        if (hasMaintenance(s)) return s;
-                    }
-                    return ItemStack.EMPTY;
-                }).orElse(ItemStack.EMPTY);
+                    .map(inv -> {
+                        var slots = inv.getCurios();
+                        if (!slots.containsKey("back")) return ItemStack.EMPTY;
+                        var handler = slots.get("back").getStacks();
+                        for (int i = 0; i < handler.getSlots(); i++) {
+                            ItemStack s = handler.getStackInSlot(i);
+                            if (hasMaintenance(s)) return s;
+                        }
+                        return ItemStack.EMPTY;
+                    }).orElse(ItemStack.EMPTY);
             if (!curiosPack.isEmpty()) return curiosPack;
         }
 
