@@ -34,6 +34,11 @@ import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 
+
+// The BlockEntity for the OmniPackBlock. Stores the pack's inventory and upgrades, and handles saving/loading to NBT
+// and ItemStacks.
+// Also implements MenuProvider to open the GUI directly from the block (without needing to convert to an ItemStack
+// first).
 public class OmniPackBlockEntity extends BlockEntity implements MenuProvider {
 
     private final OmniPackTier tier;

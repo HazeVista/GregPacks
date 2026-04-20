@@ -289,9 +289,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
         long maxEU;
 
         if (sourceBlockEntity != null) {
-            // BE state: read directly from the block entity, not from an item stack.
-            // getActiveStack() returns EMPTY when placed so the old code bailed here
-            // before writing anything, leaving the energy bar blank.
             storedEU = sourceBlockEntity.getStoredEU();
             maxEU = new UpgradeEffects(tier, sourceBlockEntity.getUpgradeInventory()).totalEnergyStorage;
         } else {
