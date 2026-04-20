@@ -12,7 +12,9 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import com.astrogreg.gregpacks.OmniPackTickHandler;
@@ -25,6 +27,8 @@ import com.astrogreg.gregpacks.item.UpgradeType;
 import com.astrogreg.gregpacks.registry.GregPacksMenus;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import lombok.Setter;
+
+import javax.annotation.Nullable;
 
 public class OmniPackMenu extends AbstractContainerMenu {
 
@@ -67,12 +71,11 @@ public class OmniPackMenu extends AbstractContainerMenu {
     }
 
     // Client-side constructor — reads real slot count from buf
-    // Buffer layout (written by OpenPackHelper):
     public OmniPackMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         this(containerId, playerInventory,
-                new OmniPackInventory(buf.readShort()),              // real slot count
-                new OmniPackInventory(buf.readByte()),               // upgrade slot count
-                OmniPackTier.values()[buf.readByte()]);              // tier ordinal
+                new OmniPackInventory(buf.readShort()),
+                new OmniPackInventory(buf.readByte()),
+                OmniPackTier.values()[buf.readByte()]);
     }
 
     private void addPackSlots() {
@@ -114,7 +117,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
 
                     GregPacksConfig.UpgradeConfigs cfg = GregPacksConfig.INSTANCE.ModuleValues;
 
-                    // Only item-capacity modules shrink the pack gui
                     int thisBonus = switch (upgradeItem.getUpgradeType()) {
                         case ITEM_CAPACITY_I -> cfg.itemModule1Bonus;
                         case ITEM_CAPACITY_II -> cfg.itemModule2Bonus;
@@ -124,7 +126,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
                     if (thisBonus == 0) return true;
                     int slotsWithout = tier.defaultSlots;
                     for (int j = 0; j < maxUpgrades; j++) {
-                        if (j == slotIdx) continue; // skip the module being removed
+                        if (j == slotIdx) continue;
                         ItemStack other = upgradeInvRef.getItem(j);
                         if (other.isEmpty() || !(other.getItem() instanceof UpgradeItem otherUpgrade))
                             continue;
@@ -136,7 +138,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
                         };
                     }
 
-                    // Slots [slotsWithout, packSlots) would disappear — they must be empty.
                     for (int j = slotsWithout; j < packSlots; j++) {
                         if (!OmniPackMenu.this.packInventory.getItem(j).isEmpty())
                             return false;
@@ -152,13 +153,11 @@ public class OmniPackMenu extends AbstractContainerMenu {
         super.slotsChanged(container);
 
         if (serverPlayer == null) return;
-        if (container != upgradeInventory) return;         // only care about upgrade changes
+        if (container != upgradeInventory) return;
 
         int newSlotCount = computeCurrentSlotCount();
         if (newSlotCount == packSlots) return;
 
-        // Save current pack contents into the item before reopening,
-        // so nothing is lost during the GUI swap.
         int slot = packSlotIndex;
         if (slot < 0) return;
 
@@ -173,7 +172,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
         serverPlayer.getServer().execute(() -> OpenPackHelper.open(serverPlayer, packStack, tier, packSlotIndex));
     }
 
-    // Recalculates total item slots based on the current upgrade inventory contents.
     private int computeCurrentSlotCount() {
         GregPacksConfig.UpgradeConfigs cfg = GregPacksConfig.INSTANCE.ModuleValues;
         int total = tier.defaultSlots;
@@ -204,8 +202,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
         int hotbarY = playerInvY + 3 * SLOT_SIZE + 4;
         for (int col = 0; col < 9; col++) {
             addSlot(new HideableSlot(playerInventory, col,
-                    PACK_START_X + col * SLOT_SIZE,
-                    hotbarY));
+                    PACK_START_X + col * SLOT_SIZE, hotbarY));
         }
     }
 
@@ -213,7 +210,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
     public ItemStack quickMoveStack(Player player, int index) {
         ItemStack result = ItemStack.EMPTY;
         Slot slot = slots.get(index);
-
         if (slot.hasItem()) {
             ItemStack slotStack = slot.getItem();
             result = slotStack.copy();
@@ -249,7 +245,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
     private void syncFluidData() {
         if (serverPlayer == null) return;
 
-        // Obtain FluidStack from either the source BlockEntity or the active ItemStack.
         FluidStack fluid;
         if (sourceBlockEntity != null) {
             fluid = sourceBlockEntity.getFluid();
@@ -278,26 +273,40 @@ public class OmniPackMenu extends AbstractContainerMenu {
         }
     }
 
+    @Nullable
+    public IFluidHandler getFluidHandler() {
+        if (sourceBlockEntity != null) {
+            return sourceBlockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).orElse(null);
+        }
+        ItemStack stack = getActiveStack();
+        return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElse(null);
+    }
+
     private void syncEnergyData() {
         if (serverPlayer == null) return;
 
-        ItemStack packStack = getActiveStack();
-        if (packStack.isEmpty()) return;
+        long storedEU;
+        long maxEU;
 
-        UpgradeEffects effects = new UpgradeEffects(tier, upgradeInventory);
-        long storedEU = getActiveStoredEU();
-        long maxEU = effects.totalEnergyStorage;
+        if (sourceBlockEntity != null) {
+            storedEU = sourceBlockEntity.getStoredEU();
+            maxEU = new UpgradeEffects(tier, sourceBlockEntity.getUpgradeInventory()).totalEnergyStorage;
+        } else {
+            ItemStack packStack = getActiveStack();
+            if (packStack.isEmpty()) return;
+            storedEU = OmniPackTickHandler.getStoredEU(packStack);
+            maxEU = new UpgradeEffects(tier, upgradeInventory).totalEnergyStorage;
+        }
 
-        int euScaled = (int) Math.min(storedEU / 100, Integer.MAX_VALUE);
-        int maxScaled = (int) Math.min(maxEU / 100, Integer.MAX_VALUE);
+        int euScaled  = (int) Math.min(storedEU / 100, Integer.MAX_VALUE);
+        int maxScaled = (int) Math.min(maxEU   / 100, Integer.MAX_VALUE);
 
-        energyData.set(0, (euScaled >> 16) & 0xFFFF);
-        energyData.set(1, euScaled & 0xFFFF);
+        energyData.set(0, (euScaled  >> 16) & 0xFFFF);
+        energyData.set(1,  euScaled         & 0xFFFF);
         energyData.set(2, (maxScaled >> 16) & 0xFFFF);
-        energyData.set(3, maxScaled & 0xFFFF);
+        energyData.set(3,  maxScaled        & 0xFFFF);
     }
 
-    // Helper
     public ItemStack getActiveStack() {
         if (sourceStack != null && !sourceStack.isEmpty()) return sourceStack;
         if (packSlotIndex >= 0) return serverPlayer.getInventory().getItem(packSlotIndex);
@@ -311,7 +320,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
     }
 
     public int getTankCapacity() {
-        UpgradeEffects effects = new com.astrogreg.gregpacks.upgrade.UpgradeEffects(tier, upgradeInventory);
+        UpgradeEffects effects = new UpgradeEffects(tier, upgradeInventory);
         return effects.totalFluidStorage;
     }
 
@@ -323,7 +332,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
         return (fluidData.get(2) << 16) | (fluidData.get(3) & 0xFFFF);
     }
 
-    // EU scaled by /100 to fit in ContainerData shorts; multiply back on client
     public long getSyncedEU() {
         return ((long) ((energyData.get(0) << 16) | (energyData.get(1) & 0xFFFF))) * 100L;
     }
@@ -332,7 +340,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
         return ((long) ((energyData.get(2) << 16) | (energyData.get(3) & 0xFFFF))) * 100L;
     }
 
-    public net.minecraft.world.level.material.Fluid getSyncedFluid() {
+    public Fluid getSyncedFluid() {
         if (syncedFluidKey.isEmpty()) return null;
         return ForgeRegistries.FLUIDS.getValue(new ResourceLocation(syncedFluidKey));
     }
@@ -401,5 +409,9 @@ public class OmniPackMenu extends AbstractContainerMenu {
 
     public HideableSlot getHideableSlot(int index) {
         return (HideableSlot) slots.get(index);
+    }
+
+    public Container getContainer() {
+        return this.packInventory;
     }
 }

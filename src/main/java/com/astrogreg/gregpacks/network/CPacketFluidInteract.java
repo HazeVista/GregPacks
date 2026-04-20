@@ -1,100 +1,80 @@
 package com.astrogreg.gregpacks.network;
 
+import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
+import com.astrogreg.gregpacks.inventory.OmniPackMenu;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.fluids.FluidActionResult;
+import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.network.NetworkEvent;
-
-import com.astrogreg.gregpacks.inventory.OmniPackMenu;
-import com.astrogreg.gregpacks.item.OmniPackItem;
-import com.astrogreg.gregpacks.item.OmniPackTier;
-import com.astrogreg.gregpacks.registry.OmniPackBlockItem;
 
 import java.util.function.Supplier;
 
-// Hello, pls fix uwu.
 public class CPacketFluidInteract {
 
-    private final int heldSlot;
+    private final boolean isLeftClick;
 
-    public CPacketFluidInteract(int heldSlot) {
-        this.heldSlot = heldSlot;
+    public CPacketFluidInteract(boolean isLeftClick) {
+        this.isLeftClick = isLeftClick;
     }
 
     public static void encode(CPacketFluidInteract msg, FriendlyByteBuf buf) {
-        buf.writeByte(msg.heldSlot);
+        buf.writeBoolean(msg.isLeftClick);
     }
 
     public static CPacketFluidInteract decode(FriendlyByteBuf buf) {
-        return new CPacketFluidInteract(buf.readByte());
+        return new CPacketFluidInteract(buf.readBoolean());
     }
 
-    // Handle
     public static void handle(CPacketFluidInteract msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
-            if (player == null) return;
-            if (!(player.containerMenu instanceof OmniPackMenu menu)) return;
+            if (player == null || !(player.containerMenu instanceof OmniPackMenu menu)) return;
 
-            ItemStack packStack = menu.getActiveStack();
-            if (packStack == null || packStack.isEmpty()) return;
-            if (!(packStack.getItem() instanceof OmniPackItem) && !(packStack.getItem() instanceof OmniPackBlockItem))
-                return;
+            ItemStack carried = menu.getCarried();
+            if (carried.isEmpty()) return;
 
-            ItemStack held = player.getInventory().getItem(msg.heldSlot);
-            if (held.isEmpty()) return;
-            if (!held.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).isPresent()) return;
+            IFluidHandler packHandler = menu.getFluidHandler();
+            if (packHandler == null) return;
 
-            OmniPackTier tier = getTier(packStack);
-            if (tier == null) return;
+            FluidActionResult result = FluidActionResult.FAILURE;
 
-            com.astrogreg.gregpacks.fluid.OmniPackFluidHandler packFluidHandler = new com.astrogreg.gregpacks.fluid.OmniPackFluidHandler(
-                    packStack.copy(), tier);
-
-            player.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(playerInventory -> {
-                net.minecraftforge.fluids.FluidActionResult result = net.minecraftforge.fluids.FluidUtil
-                        .tryEmptyContainerAndStow(
-                                held, packFluidHandler, playerInventory,
-                                net.minecraftforge.fluids.FluidType.BUCKET_VOLUME, player, true);
+            if (msg.isLeftClick) {
+                result = FluidUtil.tryEmptyContainer(carried, packHandler, Integer.MAX_VALUE, player, true);
 
                 if (!result.isSuccess()) {
-                    result = net.minecraftforge.fluids.FluidUtil.tryFillContainerAndStow(
-                            held, packFluidHandler, playerInventory,
-                            net.minecraftforge.fluids.FluidType.BUCKET_VOLUME, player, true);
+                    result = carried.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).map(itemHandler -> {
+                        // source = itemHandler (drum), destination = pack
+                        int moved = FluidUtil.tryFluidTransfer(packHandler, itemHandler, Integer.MAX_VALUE, true).getAmount();
+                        return moved > 0 ? new FluidActionResult(itemHandler.getContainer()) : FluidActionResult.FAILURE;
+                    }).orElse(FluidActionResult.FAILURE);
                 }
+            } else {
+                result = carried.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).map(itemHandler -> {
+                    int moved = FluidUtil.tryFluidTransfer(itemHandler, packHandler, Integer.MAX_VALUE, true).getAmount();
+                    return moved > 0 ? new FluidActionResult(itemHandler.getContainer()) : FluidActionResult.FAILURE;
+                }).orElse(FluidActionResult.FAILURE);
 
-                if (result.isSuccess()) {
-                    ItemStack modifiedPack = packFluidHandler.getContainer();
-                    com.astrogreg.gregpacks.fluid.FluidNBTHelper.setFluid(
-                            packStack,
-                            com.astrogreg.gregpacks.fluid.FluidNBTHelper.getFluid(modifiedPack));
-
-                    player.getInventory().setItem(msg.heldSlot, result.getResult());
-                    if (net.minecraftforge.fml.ModList.get().isLoaded("curios")) {
-                        top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player).ifPresent(inv -> {
-                            var slots = inv.getCurios();
-                            if (slots.containsKey("back")) {
-                                slots.get("back").getStacks().setStackInSlot(0, packStack);
-                            }
-                        });
-                    }
-
-                    int packSlot = menu.getPackSlotIndex();
-                    if (packSlot >= 0) {
-                        player.getInventory().setItem(packSlot, packStack);
-                    }
-
-                    player.getInventory().setChanged();
+                if (!result.isSuccess()) {
+                    result = FluidUtil.tryFillContainer(carried, packHandler, Integer.MAX_VALUE, player, true);
                 }
-            });
+            }
+
+            if (result.isSuccess()) {
+                menu.setCarried(result.getResult());
+                menu.broadcastChanges();
+
+                OmniPackBlockEntity be = menu.getSourceBlockEntity();
+                if (be != null) {
+                    be.setChanged();
+                    player.level().sendBlockUpdated(
+                            be.getBlockPos(), be.getBlockState(), be.getBlockState(), 3);
+                }
+            }
         });
         ctx.get().setPacketHandled(true);
-    }
-
-    private static OmniPackTier getTier(ItemStack stack) {
-        if (stack.getItem() instanceof OmniPackItem item) return item.getTier();
-        if (stack.getItem() instanceof OmniPackBlockItem item) return item.getBlock().getTier();
-        return null;
     }
 }
