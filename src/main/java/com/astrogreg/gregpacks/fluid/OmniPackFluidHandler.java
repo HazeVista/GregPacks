@@ -10,7 +10,6 @@ import com.astrogreg.gregpacks.item.OmniPackTier;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import org.jetbrains.annotations.NotNull;
 
-// IFluidHandlerItem for an OmniPack ItemStack.
 public class OmniPackFluidHandler implements IFluidHandlerItem {
 
     private final ItemStack container;
@@ -40,10 +39,9 @@ public class OmniPackFluidHandler implements IFluidHandlerItem {
 
     @Override
     public int getTankCapacity(int tank) {
-        // Read upgrades live so capacity always matches installed modules.
         OmniPackInventory upgradeInv = OmniPackInventory.fromUpgradeItem(container, tier.defaultMaxUpgrades);
         UpgradeEffects effects = new UpgradeEffects(tier, upgradeInv);
-        return effects.totalFluidStorage;
+        return Math.max(1000, effects.totalFluidStorage);
     }
 
     @Override
@@ -80,18 +78,34 @@ public class OmniPackFluidHandler implements IFluidHandlerItem {
 
     @Override
     public @NotNull FluidStack drain(FluidStack resource, FluidAction action) {
-        if (resource.isEmpty()) return FluidStack.EMPTY;
-        FluidStack current = FluidNBTHelper.getFluid(container);
-        if (current.isEmpty() || !current.isFluidEqual(resource)) return FluidStack.EMPTY;
-        return drainInternal(resource.getAmount(), action);
+        if (resource.isEmpty() || !resource.isFluidEqual(getFluidInTank(0))) {
+            return FluidStack.EMPTY;
+        }
+        return drain(resource.getAmount(), action);
     }
 
     @Override
     public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
-        return drainInternal(maxDrain, action);
+        FluidStack current = FluidNBTHelper.getFluid(container);
+        if (current.isEmpty() || maxDrain <= 0) return FluidStack.EMPTY;
+
+        int drainedAmount = Math.min(current.getAmount(), maxDrain);
+        FluidStack result = new FluidStack(current, drainedAmount);
+
+        if (action.execute()) {
+            int remaining = current.getAmount() - drainedAmount;
+            if (remaining <= 0) {
+                FluidNBTHelper.clear(container);
+            } else {
+                FluidStack updated = current.copy();
+                updated.setAmount(remaining);
+                FluidNBTHelper.setFluid(container, updated);
+            }
+        }
+        return result;
     }
 
-    // Internal
+
     private FluidStack drainInternal(int maxDrain, FluidAction action) {
         FluidStack current = FluidNBTHelper.getFluid(container);
         if (current.isEmpty()) return FluidStack.EMPTY;

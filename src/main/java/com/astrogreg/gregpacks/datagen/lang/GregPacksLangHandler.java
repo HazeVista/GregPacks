@@ -70,6 +70,14 @@ public class GregPacksLangHandler {
         // keybinds
         provider.add("key.gregpacks.open_omnipack", "Open OmniPack Inventory");
         provider.add("key.category.gregpacks", "GregPacks");
+
+
+        // Jade
+        provider.add("gregpacks.jade.energy", "Energy: %s / %s EU");
+        provider.add("gregpacks.jade.fluids", "Fluids:");
+        provider.add("gregpacks.jade.inventory", "Inventory:");
+        provider.add("config.jade.plugin_gregpacks", "GregPacks Integration");
+        provider.add("config.jade.plugin_gregpacks.omnipack_provider", "OmniPack Info");
     }
 
     protected static void multilineLang(RegistrateLangProvider provider, String key, String multiline) {

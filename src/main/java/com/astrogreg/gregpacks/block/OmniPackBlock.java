@@ -5,6 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -122,6 +123,18 @@ public class OmniPackBlock extends BaseEntityBlock {
                     });
         }
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state,
+                            @Nullable LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (!level.isClientSide() && stack.hasTag()) {
+            if (level.getBlockEntity(pos) instanceof OmniPackBlockEntity omniPackBE) {
+                omniPackBE.loadFromItemStack(stack);
+                omniPackBE.setChanged();
+            }
+        }
     }
 
     @Override
