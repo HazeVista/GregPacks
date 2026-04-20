@@ -1,5 +1,6 @@
 package com.astrogreg.gregpacks.inventory;
 
+import com.astrogreg.gregpacks.network.CPacketJetpackConfig;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -45,6 +46,10 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     // State
     private boolean upOpen = false;
     private int popX, popY, popW, popH;
+
+    // Buttons
+    private int pressedButton = -1;
+    private long pressedUntil = 0;
 
     private final int packRows;
 
@@ -126,6 +131,43 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
             HideableSlot s = menu.getHideableSlot(i);
             if (s.isVisible()) slotInset(g, leftPos + s.x - 1, topPos + s.y - 1);
         }
+
+        if (menu.hasJetpack2()) {
+            renderJetpackPanel(g);
+        }
+    }
+
+    private void renderJetpackPanel(GuiGraphics g) {
+        int px = popX, py = popY + popH + 4;
+        int pw = popW, ph = 44;
+
+        g.fill(px, py, px + pw, py + ph, C_BG);
+        bevel(g, px, py, pw, ph);
+
+        // Speed row
+        g.drawString(font, "Speed: " + menu.getJetpackSpeed(), px + UP_PAD, py + 6, C_TEXT, false);
+        renderSmallButton(g, px + pw - UP_PAD - 22, py + 4, "-", 0);
+        renderSmallButton(g, px + pw - UP_PAD - 10, py + 4, "+", 1);
+
+        // Thrust row
+        g.drawString(font, "Thrust: " + menu.getJetpackThrust(), px + UP_PAD, py + 24, C_TEXT, false);
+        renderSmallButton(g, px + pw - UP_PAD - 22, py + 22, "-", 2);
+        renderSmallButton(g, px + pw - UP_PAD - 10, py + 22, "+", 3);
+    }
+
+    private void renderSmallButton(GuiGraphics g, int x, int y, String label, int id) {
+        boolean pressed = pressedButton == id && System.currentTimeMillis() < pressedUntil;
+        int bg = pressed ? C_DARK : C_BG;
+        int textColor = C_TEXT;
+        g.fill(x, y, x + 10, y + 10, bg);
+        if (!pressed) bevel(g, x, y, 10, 10);
+        else {
+            g.fill(x, y, x + 10, y + 1, C_LIGHT);
+            g.fill(x, y, x + 1, y + 10, C_LIGHT);
+            g.fill(x, y + 9, x + 10, y + 10, C_DARK);
+            g.fill(x + 9, y, x + 10, y + 10, C_DARK);
+        }
+        g.drawString(font, label, x + (label.equals("+") ? 2 : 3), y + 1, textColor, false);
     }
 
     // Bars
@@ -194,18 +236,49 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
                 GregPacksNetwork.CHANNEL.sendToServer(new CPacketFluidInteract(btn == 0));
                 return true;
             }
+
+            if (upOpen && menu.hasJetpack2()) {
+                int px = popX, py = popY + popH + 4;
+                int pw = popW;
+
+                if (inButton(mx, my, px + pw - UP_PAD - 22, py + 4)) {
+                    GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(true, -1));
+                    pressedButton = 0; pressedUntil = System.currentTimeMillis() + 100;
+                    return true;
+                } else if (inButton(mx, my, px + pw - UP_PAD - 10, py + 4)) {
+                    GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(true, +1));
+                    pressedButton = 1; pressedUntil = System.currentTimeMillis() + 100;
+                    return true;
+                } else if (inButton(mx, my, px + pw - UP_PAD - 22, py + 22)) {
+                    GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(false, -1));
+                    pressedButton = 2; pressedUntil = System.currentTimeMillis() + 100;
+                    return true;
+                } else if (inButton(mx, my, px + pw - UP_PAD - 10, py + 22)) {
+                    GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(false, +1));
+                    pressedButton = 3; pressedUntil = System.currentTimeMillis() + 100;
+                    return true;
+                }
+            }
         }
 
         return super.mouseClicked(mx, my, btn);
+    }
+
+    private boolean inButton(double mx, double my, int x, int y) {
+        return mx >= x && mx < x + 10 && my >= y && my < y + 10;
     }
 
     @Override
     protected boolean hasClickedOutside(double mx, double my, int guiLeft, int guiTop, int mouseButton) {
         int bx1 = guiLeft + imageWidth + BAR_GAP;
         int bx2 = bx1 + BAR_W + BAR_SEP + BAR_W;
-        if (mx >= bx1 && mx <= bx2 && my >= guiTop && my < guiTop + imageHeight) {
-            return false;
+        if (mx >= bx1 && mx <= bx2 && my >= guiTop && my < guiTop + imageHeight) return false;
+
+        if (upOpen) {
+            int jetpackPanelH = menu.hasJetpack2() ? 44 + 4 : 0;
+            if (mx >= popX && mx < popX + popW && my >= popY && my < popY + popH + jetpackPanelH) return false;
         }
+
         return super.hasClickedOutside(mx, my, guiLeft, guiTop, mouseButton);
     }
 
@@ -228,7 +301,8 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     private void openPopup() {
         int uStart = menu.getPackSlots(), uEnd = uStart + menu.getMaxUpgrades();
         int rows = (int) Math.ceil(menu.getMaxUpgrades() / (double) UP_COLS);
-        popW = UP_PAD + UP_COLS * SS + UP_PAD;
+        int minW = menu.hasJetpack2() ? 90 : 0;
+        popW = Math.max(minW, UP_PAD + UP_COLS * SS + UP_PAD);
         popH = UP_PAD + rows * SS + UP_PAD;
         popY = topPos;
 

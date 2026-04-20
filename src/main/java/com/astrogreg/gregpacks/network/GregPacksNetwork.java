@@ -48,5 +48,11 @@ public class GregPacksNetwork {
                 .decoder(CPacketKeyState::decode)
                 .consumerMainThread(CPacketKeyState::handle)
                 .add();
+
+        CHANNEL.messageBuilder(CPacketJetpackConfig.class, 5, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(CPacketJetpackConfig::encode)
+                .decoder(CPacketJetpackConfig::decode)
+                .consumerMainThread(CPacketJetpackConfig::handle)
+                .add();
     }
 }

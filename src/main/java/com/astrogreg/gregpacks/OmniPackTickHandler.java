@@ -1,5 +1,6 @@
 package com.astrogreg.gregpacks;
 
+import com.astrogreg.gregpacks.util.JetpackConfigHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -165,13 +166,16 @@ public class OmniPackTickHandler {
         boolean sneaking = CPacketKeyState.isSneaking(player);
         boolean inAir = !player.onGround();
 
+        int speedLevel  = effects.hasJetpack2 ? JetpackConfigHelper.getSpeed(packStack)  : 3;
+        int thrustLevel = effects.hasJetpack2 ? JetpackConfigHelper.getThrust(packStack) : 3;
+
         if (!inAir && !jumping) return;
 
         GregPacksConfig.UpgradeConfigs cfg = GregPacksConfig.INSTANCE.ModuleValues;
-        long baseCost = effects.hasJetpack2 ? cfg.jetpackModule2EUCost : cfg.jetpackModule1EUCost;
-        double thrustY = effects.hasJetpack2 ? 0.35 : 0.20;
-        double capY = effects.hasJetpack2 ? 1.00 : 0.50;
-        float speedH = effects.hasJetpack2 ? 0.35f : 0.14f;
+        long baseCost = (long) cfg.jetpackModule2EUCost * ((speedLevel + thrustLevel) / 2);
+        double thrustY = (effects.hasJetpack2 ? 0.35 : 0.20) * (thrustLevel / 3.0);
+        double capY    = (effects.hasJetpack2 ? 1.00 : 0.50) * (thrustLevel / 3.0);
+        float  speedH  = (effects.hasJetpack2 ? 0.35f : 0.14f) * (speedLevel / 3.0f);
 
         long storedEU = getStoredEU(packStack);
 
@@ -179,19 +183,19 @@ public class OmniPackTickHandler {
         double newY;
 
         if (jumping && !sneaking) {
-            // Subir
+            // Up — costs EU, more if going faster or higher
             if (storedEU < baseCost) return;
             double accel = thrustY * (vel.y < 0.3 ? 2.5 : 1.0);
             newY = Math.min(vel.y + accel, capY);
             setStoredEU(packStack, storedEU - baseCost, effects.totalEnergyStorage);
         } else if (sneaking && !jumping) {
-            // Bajar — sin costo de EU
+            // Down — no eu cost
             newY = Math.max(vel.y - 0.08, -0.3);
         } else {
-            // Hover — cancelar gravedad, costo mínimo
+            // Hover
             long hoverCost = Math.max(1, baseCost / 4);
             if (storedEU < hoverCost) return;
-            newY = 0; // cancelar gravedad completamente
+            newY = Math.max(Math.min(vel.y + 0.08, 0.0), -0.08);
             setStoredEU(packStack, storedEU - hoverCost, effects.totalEnergyStorage);
         }
 

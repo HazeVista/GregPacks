@@ -1,5 +1,6 @@
 package com.astrogreg.gregpacks.inventory;
 
+import com.astrogreg.gregpacks.util.JetpackConfigHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -44,6 +45,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
     private final OmniPackTier tier;
     private final ContainerData fluidData = new SimpleContainerData(4);
     private final ContainerData energyData = new SimpleContainerData(4);
+    private final ContainerData jetpackData = new SimpleContainerData(2);
 
     private ServerPlayer serverPlayer = null;
     private OmniPackBlockEntity sourceBlockEntity = null;
@@ -67,6 +69,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
         addPlayerSlots(playerInventory);
         addDataSlots(fluidData);
         addDataSlots(energyData);
+        addDataSlots(jetpackData);
         syncFluidData();
     }
 
@@ -324,6 +327,10 @@ public class OmniPackMenu extends AbstractContainerMenu {
         return effects.totalFluidStorage;
     }
 
+    public int getJetpackSpeed()  { return jetpackData.get(0); }
+
+    public int getJetpackThrust() { return jetpackData.get(1); }
+
     public int getSyncedFluidAmount() {
         return (fluidData.get(0) << 16) | (fluidData.get(1) & 0xFFFF);
     }
@@ -350,11 +357,24 @@ public class OmniPackMenu extends AbstractContainerMenu {
         return true;
     }
 
+    public boolean hasJetpack2() {
+        for (int i = 0; i < maxUpgrades; i++) {
+            ItemStack s = upgradeInventory.getItem(i);
+            if (!s.isEmpty() && s.getItem() instanceof UpgradeItem u &&
+                    u.getUpgradeType() == UpgradeType.JETPACK_II) return true;
+        }
+        return false;
+    }
+
     @Override
     public void broadcastChanges() {
         syncFluidData();
         syncEnergyData();
         super.broadcastChanges();
+
+        ItemStack pack = getActiveStack();
+        jetpackData.set(0, pack.isEmpty() ? 3 : JetpackConfigHelper.getSpeed(pack));
+        jetpackData.set(1, pack.isEmpty() ? 3 : JetpackConfigHelper.getThrust(pack));
     }
 
     public void setServerPlayer(ServerPlayer player) {

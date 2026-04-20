@@ -22,6 +22,7 @@ import java.util.Arrays;
 public class OmniPackKeybind {
 
     private static boolean[] lastKeys = new boolean[6];
+    private static boolean lastFocused = true;
 
     public static final KeyMapping OPEN_PACK = new KeyMapping(
             "key.gregpacks.open_omnipack",
@@ -41,7 +42,17 @@ public class OmniPackKeybind {
         if (event.phase != TickEvent.Phase.END) return;
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null) {
+        if (mc.player == null) return;
+
+        boolean focused = mc.isWindowActive();
+        if (!focused && lastFocused) {
+            boolean[] allFalse = new boolean[6];
+            lastKeys = allFalse.clone();
+            GregPacksNetwork.CHANNEL.sendToServer(new CPacketKeyState(allFalse));
+        }
+        lastFocused = focused;
+
+        if (focused) {
             Options o = mc.options;
             boolean[] keys = {
                     o.keyJump.isDown(),
@@ -55,11 +66,10 @@ public class OmniPackKeybind {
                 lastKeys = keys.clone();
                 GregPacksNetwork.CHANNEL.sendToServer(new CPacketKeyState(keys));
             }
+        }
 
-            // Opens Gregpacks with Key B
-            while (OPEN_PACK.consumeClick()) {
-                GregPacksNetwork.CHANNEL.sendToServer(new CPacketOpenOmniPack());
-            }
+        while (OPEN_PACK.consumeClick()) {
+            GregPacksNetwork.CHANNEL.sendToServer(new CPacketOpenOmniPack());
         }
     }
 }
