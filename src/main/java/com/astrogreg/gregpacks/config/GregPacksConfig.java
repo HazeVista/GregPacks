@@ -95,43 +95,43 @@ public class GregPacksConfig {
     public static class UpgradeConfigs {
 
         @Configurable
-        @Configurable.Comment( "Number of slots added by the Item Capacity Module I" )
+        @Configurable.Comment({ "Number of slots added by the Item Capacity Module I", "Default: 9" })
         public int itemModule1Bonus = 9;
         @Configurable
-        @Configurable.Comment( "Number of slots added by the Item Capacity Module II" )
+        @Configurable.Comment({ "Number of slots added by the Item Capacity Module II", "Default: 18" })
         public int itemModule2Bonus = 18;
         @Configurable
-        @Configurable.Comment( "Number of slots added by the Item Capacity Module III" )
+        @Configurable.Comment({ "Number of slots added by the Item Capacity Module III", "Default: 27" })
         public int itemModule3Bonus = 27;
         @Configurable
-        @Configurable.Comment( "Tank multiplier for the Fluid Capacity Module I" )
+        @Configurable.Comment({ "Tank multiplier for the Fluid Capacity Module I", "Default: 2.00" })
         public double fluidModule1Bonus = 2.00;
         @Configurable
-        @Configurable.Comment( "Tank multiplier for the Fluid Capacity Module II" )
+        @Configurable.Comment({ "Tank multiplier for the Fluid Capacity Module II", "Default: 4.00" })
         public double fluidModule2Bonus = 4.00;
         @Configurable
-        @Configurable.Comment( "Tank multiplier for the Fluid Capacity Module III" )
+        @Configurable.Comment({ "Tank multiplier for the Fluid Capacity Module III", "Default: 8.00" })
         public double fluidModule3Bonus = 8.00;
         @Configurable
-        @Configurable.Comment( "EU capacity multiplier for the Energy Capacity Module I" )
+        @Configurable.Comment({ "EU capacity multiplier for the Energy Capacity Module I", "Default: 1.25" })
         public double energyModule1Bonus = 1.25;
         @Configurable
-        @Configurable.Comment( "EU capacity multiplier for the Energy Capacity Module II" )
+        @Configurable.Comment({ "EU capacity multiplier for the Energy Capacity Module II", "Default: 1.50" })
         public double energyModule2Bonus = 1.50;
         @Configurable
-        @Configurable.Comment( "EU capacity multiplier for the Energy Capacity Module III" )
+        @Configurable.Comment({ "EU capacity multiplier for the Energy Capacity Module III", "Default: 2.00" })
         public double energyModule3Bonus = 2.00;
         @Configurable
-        @Configurable.Comment( "EU per tick cost of the Jetpack Module I" )
+        @Configurable.Comment({ "EU per tick cost of the Jetpack Module I", "Default: 30" })
         public int jetpackModule1EUCost = 30;
         @Configurable
-        @Configurable.Comment( "EU per tick cost of the Jetpack Module II" )
+        @Configurable.Comment({ "EU per tick cost of the Jetpack Module II", "Default: 90" })
         public int jetpackModule2EUCost = 90;
         @Configurable
-        @Configurable.Comment( "Pickup radius in blocks of the Magnet Module I" )
+        @Configurable.Comment({ "Pickup radius in blocks of the Magnet Module I", "Default: 5" })
         public int magnetModule1Radius = 5;
         @Configurable
-        @Configurable.Comment( "Pickup radius in blocks of the Magnet Module II" )
+        @Configurable.Comment({ "Pickup radius in blocks of the Magnet Module II", "Default: 10" })
         public int magnetModule2Radius = 10;
 
     }
