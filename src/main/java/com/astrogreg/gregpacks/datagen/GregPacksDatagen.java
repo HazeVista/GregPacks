@@ -10,5 +10,4 @@ public class GregPacksDatagen {
     public static void init() {
         REGISTRATE.addDataGenerator(ProviderType.LANG, GregPacksLangHandler::init);
     }
-
 }

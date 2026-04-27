@@ -28,3 +28,11 @@ license = "${mod_license}"
         versionRange = "[${gtceu_version},)"
         ordering = "AFTER"
         side = "BOTH"
+[[dependencies.${mod_id}]]
+        modId = "curios"
+        mandatory = false
+        versionRange = "[5.9,)"
+        ordering = "NONE"
+        side = "BOTH"
+
+

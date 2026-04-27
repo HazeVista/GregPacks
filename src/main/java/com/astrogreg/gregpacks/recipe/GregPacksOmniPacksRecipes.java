@@ -1,14 +1,16 @@
 package com.astrogreg.gregpacks.recipe;
 
-import com.astrogreg.gregpacks.GregPacks;
-import com.astrogreg.gregpacks.registry.GregPacksBlocks;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
+
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.ItemStack;
+
+import com.astrogreg.gregpacks.GregPacks;
+import com.astrogreg.gregpacks.registry.GregPacksBlocks;
 
 import java.util.function.Consumer;
 
@@ -21,7 +23,6 @@ import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.ASSEMBLY_LINE_RECI
 public class GregPacksOmniPacksRecipes {
 
     public static void init(Consumer<FinishedRecipe> provider) {
-
         VanillaRecipeHelper.addShapedRecipe(provider, false, GregPacks.id("basic_omnipack"),
                 new ItemStack(GregPacksBlocks.BASIC_OMNIPACK_BLOCK.asItem()), "ABA", "CED", "ABA",
                 'A', new MaterialEntry(plate, Rubber), 'B', new MaterialEntry(cableGtSingle, Tin),
@@ -59,5 +60,4 @@ public class GregPacksOmniPacksRecipes {
                 .EUt(7680)
                 .save(provider);
     }
-
 }

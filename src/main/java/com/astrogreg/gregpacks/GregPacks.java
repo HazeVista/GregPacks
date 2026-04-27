@@ -1,17 +1,5 @@
 package com.astrogreg.gregpacks;
 
-import com.astrogreg.gregpacks.config.GregPacksConfig;
-import com.astrogreg.gregpacks.datagen.GregPacksDataGenerators;
-import com.astrogreg.gregpacks.datagen.GregPacksDatagen;
-import com.astrogreg.gregpacks.inventory.GregPacksMenus;
-import com.astrogreg.gregpacks.inventory.OmniPackKeybind;
-import com.astrogreg.gregpacks.inventory.OmniPackScreen;
-import com.astrogreg.gregpacks.item.GregPacksItems;
-import com.astrogreg.gregpacks.network.GregPacksNetwork;
-import com.astrogreg.gregpacks.registry.GregPacksBlockEntities;
-import com.astrogreg.gregpacks.registry.GregPacksBlocks;
-import com.astrogreg.gregpacks.registry.GregPacksUpgrades;
-
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialEvent;
 import com.gregtechceu.gtceu.api.data.chemical.material.event.MaterialRegistryEvent;
@@ -24,7 +12,6 @@ import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -33,6 +20,18 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
+import com.astrogreg.gregpacks.client.OmniPackCurioRenderer;
+import com.astrogreg.gregpacks.config.GregPacksConfig;
+import com.astrogreg.gregpacks.datagen.GregPacksDataGenerators;
+import com.astrogreg.gregpacks.datagen.GregPacksDatagen;
+import com.astrogreg.gregpacks.inventory.GregPacksMenus;
+import com.astrogreg.gregpacks.inventory.OmniPackKeybind;
+import com.astrogreg.gregpacks.inventory.OmniPackScreen;
+import com.astrogreg.gregpacks.item.GregPacksItems;
+import com.astrogreg.gregpacks.network.GregPacksNetwork;
+import com.astrogreg.gregpacks.registry.GregPacksBlockEntities;
+import com.astrogreg.gregpacks.registry.GregPacksBlocks;
+import com.astrogreg.gregpacks.registry.GregPacksUpgrades;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -80,12 +79,24 @@ public class GregPacks {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        event.enqueueWork(GregPacksNetwork::init);
+        event.enqueueWork(() -> {
+            GregPacksNetwork.init();
+        });
     }
 
     private void clientSetup(final FMLClientSetupEvent event) {
-        event.enqueueWork(() ->
-                MenuScreens.register(GregPacksMenus.OMNIPACK_MENU.get(), OmniPackScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(GregPacksMenus.OMNIPACK_MENU.get(), OmniPackScreen::new));
+        registerCurioRenderers();
+    }
+
+    private void registerCurioRenderers() {
+        if (!net.minecraftforge.fml.ModList.get().isLoaded("curios")) return;
+        top.theillusivec4.curios.api.client.CuriosRendererRegistry.register(
+                GregPacksBlocks.BASIC_OMNIPACK_BLOCK.asItem(), () -> OmniPackCurioRenderer.INSTANCE);
+        top.theillusivec4.curios.api.client.CuriosRendererRegistry.register(
+                GregPacksBlocks.ADVANCED_OMNIPACK_BLOCK.asItem(), () -> OmniPackCurioRenderer.INSTANCE);
+        top.theillusivec4.curios.api.client.CuriosRendererRegistry.register(
+                GregPacksBlocks.ELITE_OMNIPACK_BLOCK.asItem(), () -> OmniPackCurioRenderer.INSTANCE);
     }
 
     public static void init() {
@@ -102,8 +113,12 @@ public class GregPacks {
     }
 
     private void addMaterials(MaterialEvent event) {}
+
     private void modifyMaterials(PostMaterialEvent event) {}
+
     private void registerRecipeTypes(GTCEuAPI.RegisterEvent<ResourceLocation, GTRecipeType> event) {}
+
     private void registerMachines(GTCEuAPI.RegisterEvent<ResourceLocation, MachineDefinition> event) {}
+
     public void registerSounds(GTCEuAPI.RegisterEvent<ResourceLocation, SoundEntry> event) {}
 }

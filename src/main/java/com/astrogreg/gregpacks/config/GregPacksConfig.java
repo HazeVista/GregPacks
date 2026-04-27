@@ -27,7 +27,7 @@ public class GregPacksConfig {
     @Configurable.Comment({ "Config options for Upgrade Modules" })
     public UpgradeConfigs ModuleValues = new UpgradeConfigs();
 
-    public static class PackValueConfigs{
+    public static class PackValueConfigs {
 
         @Configurable
         @Configurable.Comment({ "Basic OmniPack Base Values" })
@@ -39,10 +39,10 @@ public class GregPacksConfig {
         @Configurable.Comment({ "Elite OmniPack Base Values" })
         public ElitePack elitePack = new ElitePack();
 
-        public static class BasicPack{
+        public static class BasicPack {
 
             @Configurable
-            @Configurable.Comment({"Base number of slots for the Basic OmniPack", "Default: 27"})
+            @Configurable.Comment({ "Base number of slots for the Basic OmniPack", "Default: 27" })
             public int basicPackItemSlots = 27;
             @Configurable
             @Configurable.Comment({ "Base fluid capacity for the Basic OmniPack in millibuckets", "Default: 32000" })
@@ -56,13 +56,14 @@ public class GregPacksConfig {
 
         }
 
-        public static class AdvancedPack{
+        public static class AdvancedPack {
 
             @Configurable
-            @Configurable.Comment({"Base number of slots for the Advanced OmniPack", "Default: 45"})
+            @Configurable.Comment({ "Base number of slots for the Advanced OmniPack", "Default: 45" })
             public int advancedPackItemSlots = 45;
             @Configurable
-            @Configurable.Comment({ "Base fluid capacity for the Advanced OmniPack in millibuckets", "Default: 128000" })
+            @Configurable.Comment({ "Base fluid capacity for the Advanced OmniPack in millibuckets",
+                    "Default: 128000" })
             public int advancedPackFluidStorage = 128_000;
             @Configurable
             @Configurable.Comment({ "Base EU capacity for the Advanced OmniPack", "Default: 1000000" })
@@ -70,13 +71,12 @@ public class GregPacksConfig {
             @Configurable
             @Configurable.Comment({ "Number of upgrade slots on the Advanced OmniPack", "Default: 10" })
             public int advancedPackUpgradeSlots = 10;
-
         }
 
-        public static class ElitePack{
+        public static class ElitePack {
 
             @Configurable
-            @Configurable.Comment({"Base number of slots for the Elite OmniPack", "Default: 90"})
+            @Configurable.Comment({ "Base number of slots for the Elite OmniPack", "Default: 90" })
             public int elitePackItemSlots = 90;
             @Configurable
             @Configurable.Comment({ "Base fluid capacity for the Elite OmniPack in millibuckets", "Default: 512000" })
@@ -87,9 +87,7 @@ public class GregPacksConfig {
             @Configurable
             @Configurable.Comment({ "Number of upgrade slots on the Elite OmniPack", "Default: 16" })
             public int elitePackUpgradeSlots = 16;
-
         }
-
     }
 
     public static class UpgradeConfigs {
@@ -133,7 +131,5 @@ public class GregPacksConfig {
         @Configurable
         @Configurable.Comment({ "Pickup radius in blocks of the Magnet Module II", "Default: 10" })
         public int magnetModule2Radius = 10;
-
     }
-
 }

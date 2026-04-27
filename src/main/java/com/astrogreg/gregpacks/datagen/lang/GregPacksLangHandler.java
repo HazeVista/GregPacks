@@ -6,7 +6,6 @@ import com.tterrag.registrate.providers.RegistrateLangProvider;
 public class GregPacksLangHandler {
 
     public static void init(RegistrateLangProvider provider) {
-
         // OmniPack Item
         provider.add("item.gregpacks.omnipack.tooltip.slots", "§6Item Slots:§r %s");
         provider.add("item.gregpacks.omnipack.tooltip.fluid", "§9Fluid Capacity:§r %s mB");
@@ -18,8 +17,7 @@ public class GregPacksLangHandler {
         // OmniPack UI
         provider.add("container.gregpacks.tab.inventory", "Omnipack Inventory");
         provider.add("container.gregpacks.tab.upgrades", "Upgrade Modules");
-        provider.add("container.gregpacks.omnipack","OmniPack Inventory");
-        provider.add("container.inventory", "OmniPack Inventory");
+        provider.add("container.gregpacks.omnipack", "OmniPack Inventory");
         provider.add("container.gregpacks.upgrades", "Upgrade Modules");
 
         // Molds
@@ -62,11 +60,24 @@ public class GregPacksLangHandler {
         provider.add("item.gregpacks.processing_module.tooltip",
                 "An upgrade module that can be combined with singleblock machines for portable processing in your OmniPack");
 
+        // Messages
+        provider.add("message.gregpacks.maintenance_fixed",
+                "\"Maintenance fixed!\"");
+
+        provider.add("message.gregpacks.maintenance_failed",
+                "\"Some problems fixed, missing tools in pack!\"");
 
         // keybinds
         provider.add("key.gregpacks.open_omnipack", "Open OmniPack Inventory");
         provider.add("key.category.gregpacks", "GregPacks");
 
+
+        // Jade
+        provider.add("gregpacks.jade.energy", "Energy: %s / %s EU");
+        provider.add("gregpacks.jade.fluids", "Fluids:");
+        provider.add("gregpacks.jade.inventory", "Inventory:");
+        provider.add("config.jade.plugin_gregpacks", "GregPacks Integration");
+        provider.add("config.jade.plugin_gregpacks.omnipack_provider", "OmniPack Info");
     }
 
     protected static void multilineLang(RegistrateLangProvider provider, String key, String multiline) {
@@ -83,5 +94,4 @@ public class GregPacksLangHandler {
     protected static String getSubKey(String key, int index) {
         return key + "." + index;
     }
-
 }

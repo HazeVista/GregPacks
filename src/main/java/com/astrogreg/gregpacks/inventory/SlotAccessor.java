@@ -25,12 +25,18 @@ public class SlotAccessor {
     }
 
     public static void setX(Slot slot, int x) {
-        try { FIELD_X.setInt(slot, x); }
-        catch (IllegalAccessException e) { throw new RuntimeException(e); }
+        try {
+            FIELD_X.setInt(slot, x);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void setY(Slot slot, int y) {
-        try { FIELD_Y.setInt(slot, y); }
-        catch (IllegalAccessException e) { throw new RuntimeException(e); }
+        try {
+            FIELD_Y.setInt(slot, y);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

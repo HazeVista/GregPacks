@@ -1,13 +1,14 @@
 package com.astrogreg.gregpacks;
 
-import com.astrogreg.gregpacks.recipe.GregPacksModuleBaseRecipes;
-import com.astrogreg.gregpacks.recipe.GregPacksModuleRecipes;
-import com.astrogreg.gregpacks.recipe.GregPacksOmniPacksRecipes;
 import com.gregtechceu.gtceu.api.addon.GTAddon;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
 import net.minecraft.data.recipes.FinishedRecipe;
+
+import com.astrogreg.gregpacks.recipe.GregPacksModuleBaseRecipes;
+import com.astrogreg.gregpacks.recipe.GregPacksModuleRecipes;
+import com.astrogreg.gregpacks.recipe.GregPacksOmniPacksRecipes;
 
 import java.util.function.Consumer;
 

@@ -2,11 +2,15 @@
   "block.gregpacks.advanced_omnipack": "§eAdvanced OmniPack",
   "block.gregpacks.basic_omnipack": "§bBasic OmniPack",
   "block.gregpacks.elite_omnipack": "§cElite OmniPack",
+  "config.jade.plugin_gregpacks": "GregPacks Integration",
+  "config.jade.plugin_gregpacks.omnipack_provider": "OmniPack Info",
   "container.gregpacks.omnipack": "OmniPack Inventory",
   "container.gregpacks.tab.inventory": "Omnipack Inventory",
   "container.gregpacks.tab.upgrades": "Upgrade Modules",
   "container.gregpacks.upgrades": "Upgrade Modules",
-  "container.inventory": "OmniPack Inventory",
+  "gregpacks.jade.energy": "Energy: %s / %s EU",
+  "gregpacks.jade.fluids": "Fluids:",
+  "gregpacks.jade.inventory": "Inventory:",
   "item.gregpacks.crafting_module": "Crafting Module",
   "item.gregpacks.crafting_module.tooltip": "An upgrade module that adds a crafting table interface to your OmniPack",
   "item.gregpacks.energy_module_1": "Energy Capacity Module I",
@@ -61,5 +65,7 @@
   "item.gregpacks.processing_module": "Processing Module",
   "item.gregpacks.processing_module.tooltip": "An upgrade module that can be combined with singleblock machines for portable processing in your OmniPack",
   "key.category.gregpacks": "GregPacks",
-  "key.gregpacks.open_omnipack": "Open OmniPack Inventory"
+  "key.gregpacks.open_omnipack": "Open OmniPack Inventory",
+  "message.gregpacks.maintenance_failed": "\"Some problems fixed, missing tools in pack!\"",
+  "message.gregpacks.maintenance_fixed": "\"Maintenance fixed!\""
 }

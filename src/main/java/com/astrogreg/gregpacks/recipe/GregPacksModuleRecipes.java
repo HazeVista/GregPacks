@@ -1,16 +1,18 @@
 package com.astrogreg.gregpacks.recipe;
 
-import com.astrogreg.gregpacks.GregPacks;
-import com.astrogreg.gregpacks.item.GregPacksItems;
-import com.astrogreg.gregpacks.registry.GregPacksUpgrades;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
+
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+
+import com.astrogreg.gregpacks.GregPacks;
+import com.astrogreg.gregpacks.item.GregPacksItems;
+import com.astrogreg.gregpacks.registry.GregPacksUpgrades;
 
 import java.util.function.Consumer;
 
@@ -22,7 +24,6 @@ import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.ASSEMBLER_RECIPES;
 public class GregPacksModuleRecipes {
 
     public static void init(Consumer<FinishedRecipe> provider) {
-
         // Item Modules
         VanillaRecipeHelper.addShapedRecipe(provider, true,
                 GregPacks.id("item_module_1"), new ItemStack(GregPacksUpgrades.ITEM_CAPACITY_I),
@@ -205,7 +206,5 @@ public class GregPacksModuleRecipes {
                 .EUt(480)
                 .addMaterialInfo(true)
                 .save(provider);
-
     }
-
 }
