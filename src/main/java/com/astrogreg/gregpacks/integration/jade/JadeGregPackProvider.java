@@ -1,21 +1,20 @@
 package com.astrogreg.gregpacks.integration.jade;
 
-import com.astrogreg.gregpacks.GregPacks;
-import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
-import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
-import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
+
+import com.astrogreg.gregpacks.GregPacks;
+import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
+import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
-import snownee.jade.api.fluid.JadeFluidObject;
 import snownee.jade.api.ui.IElementHelper;
 
 public class JadeGregPackProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
@@ -23,20 +22,18 @@ public class JadeGregPackProvider implements IBlockComponentProvider, IServerDat
     private static final ResourceLocation UID = new ResourceLocation(GregPacks.MOD_ID, "omnipack_provider");
     private static final String KEY_ENERGY = "GP_Energy";
     private static final String KEY_FLUIDS = "GP_Fluids";
-    private static final String KEY_ITEMS  = "GP_Items";
+    private static final String KEY_ITEMS = "GP_Items";
 
     @Override
     public void appendServerData(CompoundTag data, BlockAccessor accessor) {
         if (!(accessor.getBlockEntity() instanceof OmniPackBlockEntity entity)) return;
 
-        long stored   = entity.getStoredEU();
-        long capacity = new UpgradeEffects(entity.getTier(), entity.getUpgradeInventory())
-                .totalEnergyStorage;
+        long stored = entity.getStoredEU();
+        long capacity = new UpgradeEffects(entity.getTier(), entity.getUpgradeInventory()).totalEnergyStorage;
         CompoundTag energyTag = new CompoundTag();
         energyTag.putLong("stored", stored);
         energyTag.putLong("capacity", capacity);
         data.put(KEY_ENERGY, energyTag);
-
 
         entity.getCapability(ForgeCapabilities.FLUID_HANDLER).ifPresent(handler -> {
             if (handler.getTanks() > 0) {
@@ -70,7 +67,7 @@ public class JadeGregPackProvider implements IBlockComponentProvider, IServerDat
 
         if (serverData.contains(KEY_ENERGY)) {
             CompoundTag tag = serverData.getCompound(KEY_ENERGY);
-            long stored   = tag.getLong("stored");
+            long stored = tag.getLong("stored");
             long capacity = tag.getLong("capacity");
             if (capacity > 0) {
                 float ratio = (float) stored / capacity;

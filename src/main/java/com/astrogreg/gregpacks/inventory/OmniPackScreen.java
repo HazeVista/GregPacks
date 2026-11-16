@@ -1,6 +1,5 @@
 package com.astrogreg.gregpacks.inventory;
 
-import com.astrogreg.gregpacks.network.CPacketJetpackConfig;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -9,45 +8,47 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 
 import com.astrogreg.gregpacks.network.CPacketFluidInteract;
+import com.astrogreg.gregpacks.network.CPacketJetpackConfig;
 import com.astrogreg.gregpacks.network.GregPacksNetwork;
 import org.jetbrains.annotations.NotNull;
 
 public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
 
-    // Colors
-    private static final int C_BG    = 0xFFC6C6C6;
-    private static final int C_DARK  = 0xFF555555;
+    private static final int C_BG = 0xFFC6C6C6;
+    private static final int C_DARK = 0xFF555555;
     private static final int C_LIGHT = 0xFFFFFFFF;
-    private static final int C_SLOT  = 0xFF8B8B8B;
-    private static final int C_TEXT  = 0xFF404040;
-    private static final int C_BAR   = 0xFF3B3B3B;
+    private static final int C_SLOT = 0xFF8B8B8B;
+    private static final int C_TEXT = 0xFF404040;
+    private static final int C_BAR = 0xFF3B3B3B;
     private static final int C_FLUID = 0xFF0099FF;
-    private static final int C_EU    = 0xFFFFD700;
+    private static final int C_EU = 0xFFFFD700;
 
     // Layout
-    private static final int PAD  = 7;
+    private static final int PAD = 7;
     private static final int COLS = 9;
-    private static final int SS   = 18;
+    private static final int SS = 18;
 
-    // Bars
-    private static final int BAR_W   = 10;
+    private static final int BAR_W = 10;
     private static final int BAR_SEP = 4;
     private static final int BAR_GAP = 3;
 
     // Tab
-    private static final int TAB_W   = 70;
-    private static final int TAB_H   = 14;
+    private static final int TAB_W = 70;
+    private static final int TAB_H = 14;
     private static final int TAB_OFF = 0;
+    private static final int TAB2_OFF = TAB_W + 4;
 
     // Popup
     private static final int UP_COLS = 2;
-    private static final int UP_PAD  = 6;
+    private static final int UP_PAD = 6;
+    private static final int ARROW_GAP = 24;
 
     // State
     private boolean upOpen = false;
+    private boolean craftOpen = false;
     private int popX, popY, popW, popH;
+    private int craftPopX, craftPopY;
 
-    // Buttons
     private int pressedButton = -1;
     private long pressedUntil = 0;
 
@@ -56,7 +57,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     public OmniPackScreen(OmniPackMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         packRows = (int) Math.ceil(menu.getPackSlots() / (double) COLS);
-        imageWidth  = PAD + COLS * SS + PAD;
+        imageWidth = PAD + COLS * SS + PAD;
         imageHeight = PAD + 10 + packRows * SS + PAD + 4 + 3 * SS + PAD + 4 + SS + PAD;
     }
 
@@ -65,6 +66,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         super.init();
         applyMainLayout();
         hideUpSlots();
+        hideCraftSlots();
     }
 
     // Render
@@ -73,7 +75,9 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         renderBackground(g);
         super.render(g, mx, my, pt);
         renderTab(g, mx, my);
+        if (menu.hasCrafting()) renderCraftTab(g, mx, my);
         if (upOpen) renderPopup(g);
+        if (craftOpen) renderCraftPopup(g);
         renderBars(g, mx, my);
         renderTooltip(g, mx, my);
     }
@@ -88,8 +92,12 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         g.fill(x + PAD, divY, x + imageWidth - PAD, divY + 1, C_DARK);
 
         int uStart = menu.getPackSlots(), uEnd = uStart + menu.getMaxUpgrades();
+        int craftStart = menu.getCraftingGridStart();
+        int craftEnd = craftStart >= 0 ? craftStart + 10 : -1;
+
         for (int i = 0; i < menu.slots.size(); i++) {
             if (i >= uStart && i < uEnd) continue;
+            if (craftStart >= 0 && i >= craftStart && i < craftEnd) continue;
             HideableSlot s = menu.getHideableSlot(i);
             if (s.isVisible()) slotInset(g, x + s.x - 1, y + s.y - 1);
         }
@@ -102,7 +110,6 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         g.drawString(font, Component.translatable("container.inventory"), PAD, labelY, C_TEXT, false);
     }
 
-    // Tab
     private void renderTab(GuiGraphics g, int mx, int my) {
         int tx = leftPos + TAB_OFF;
         int ty = topPos - TAB_H;
@@ -121,7 +128,6 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
                 C_TEXT, false);
     }
 
-    // Popup
     private void renderPopup(GuiGraphics g) {
         g.fill(popX, popY, popX + popW, popY + popH, C_BG);
         bevel(g, popX, popY, popW, popH);
@@ -144,12 +150,11 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         g.fill(px, py, px + pw, py + ph, C_BG);
         bevel(g, px, py, pw, ph);
 
-        // Speed row
+
         g.drawString(font, "Speed: " + menu.getJetpackSpeed(), px + UP_PAD, py + 6, C_TEXT, false);
         renderSmallButton(g, px + pw - UP_PAD - 22, py + 4, "-", 0);
         renderSmallButton(g, px + pw - UP_PAD - 10, py + 4, "+", 1);
 
-        // Thrust row
         g.drawString(font, "Thrust: " + menu.getJetpackThrust(), px + UP_PAD, py + 24, C_TEXT, false);
         renderSmallButton(g, px + pw - UP_PAD - 22, py + 22, "-", 2);
         renderSmallButton(g, px + pw - UP_PAD - 10, py + 22, "+", 3);
@@ -170,12 +175,55 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         g.drawString(font, label, x + (label.equals("+") ? 2 : 3), y + 1, textColor, false);
     }
 
-    // Bars
+    // Bars/Crafting tab
+    private void renderCraftTab(GuiGraphics g, int mx, int my) {
+        int tx = leftPos + TAB2_OFF;
+        int ty = topPos - TAB_H;
+        int bg = craftOpen ? C_BG : 0xFFBBBBBB;
+
+        g.fill(tx, ty, tx + TAB_W, ty + TAB_H, bg);
+        g.fill(tx, ty, tx + TAB_W, ty + 1, C_DARK);
+        g.fill(tx, ty, tx + 1, ty + TAB_H, C_DARK);
+        g.fill(tx + TAB_W - 1, ty, tx + TAB_W, ty + TAB_H, C_LIGHT);
+        g.fill(tx + 1, ty + TAB_H - 1, tx + TAB_W - 1, ty + TAB_H, C_BG);
+
+        String lbl = "Crafting " + (craftOpen ? "▼" : "▶");
+        g.drawString(font, lbl,
+                tx + (TAB_W - font.width(lbl)) / 2,
+                ty + (TAB_H - 7) / 2,
+                C_TEXT, false);
+    }
+
+    private void renderCraftPopup(GuiGraphics g) {
+        int pw = UP_PAD + 3 * SS + ARROW_GAP + SS + UP_PAD;
+        int ph = UP_PAD + 3 * SS + UP_PAD;
+        g.fill(craftPopX, craftPopY, craftPopX + pw, craftPopY + ph, C_BG);
+        bevel(g, craftPopX, craftPopY, pw, ph);
+
+        int gridStart = menu.getCraftingGridStart();
+        if (gridStart >= 0) {
+            for (int i = gridStart; i < gridStart + 9; i++) {
+                HideableSlot s = menu.getHideableSlot(i);
+                if (s.isVisible()) slotInset(g, leftPos + s.x - 1, topPos + s.y - 1);
+            }
+        }
+        // The arrow
+        int arrowX = craftPopX + UP_PAD + 3 * SS + 4;
+        int arrowCY = craftPopY + UP_PAD + SS + SS / 2;
+        drawArrowShape(g, arrowX + 1, arrowCY + 1, C_DARK);
+        drawArrowShape(g, arrowX, arrowCY, C_SLOT);
+
+        HideableResultSlot rs = menu.getCraftingResultSlotObj();
+        if (rs != null && rs.isVisible()) {
+            slotInset(g, leftPos + rs.x - 1, topPos + rs.y - 1);
+        }
+    }
+
     private void renderBars(GuiGraphics g, int mx, int my) {
         int bx1 = leftPos + imageWidth + BAR_GAP;
         int bx2 = bx1 + BAR_W + BAR_SEP;
-        int by  = topPos;
-        int bh  = imageHeight;
+        int by = topPos;
+        int bh = imageHeight;
 
         // Fluid bar
         bar(g, bx1, by, BAR_W, bh);
@@ -183,18 +231,17 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         if (amt > 0 && cap > 0) {
             int fh = (int) ((float) amt / cap * (bh - 2));
             Fluid fl = menu.getSyncedFluid();
-            int fc = fl != null
-                    ? IClientFluidTypeExtensions.of(fl.getFluidType()).getTintColor() | 0xFF000000
-                    : C_FLUID;
+            int fc = fl != null ? IClientFluidTypeExtensions.of(fl.getFluidType()).getTintColor() | 0xFF000000 :
+                    C_FLUID;
             g.fill(bx1 + 1, by + bh - 1 - fh, bx1 + BAR_W - 1, by + bh - 1, fc);
         }
         if (mx >= bx1 && mx < bx1 + BAR_W && my >= by && my < by + bh) {
             Fluid fl = menu.getSyncedFluid();
             String nm = fl != null ? fl.getFluidType().getDescription().getString() : "Empty";
             g.renderTooltip(font, java.util.List.of(
-                            Component.literal("§bFluid: " + nm),
-                            Component.literal(amt + " / " + cap + " mB"),
-                            Component.literal("§7Left-click to fill, Right-click to drain")),
+                    Component.literal("§bFluid: " + nm),
+                    Component.literal(amt + " / " + cap + " mB"),
+                    Component.literal("§7Left-click to fill, Right-click to drain")),
                     java.util.Optional.empty(), mx, my);
         }
 
@@ -207,57 +254,67 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         }
         if (mx >= bx2 && mx < bx2 + BAR_W && my >= by && my < by + bh) {
             g.renderTooltip(font, java.util.List.of(
-                            Component.literal("§6Energy (EU)"),
-                            Component.literal(eu + " / " + euMax + " EU")),
+                    Component.literal("§6Energy (EU)"),
+                    Component.literal(eu + " / " + euMax + " EU")),
                     java.util.Optional.empty(), mx, my);
         }
     }
 
-    // Mouse
     @Override
     public boolean mouseClicked(double mx, double my, int btn) {
-        // Tab — left click only
         if (btn == 0) {
-            int tx = leftPos + TAB_OFF, ty = topPos - TAB_H;
+            int ty = topPos - TAB_H;
+
+            int tx = leftPos + TAB_OFF;
             if (mx >= tx && mx < tx + TAB_W && my >= ty && my < ty + TAB_H) {
                 upOpen = !upOpen;
                 if (upOpen) openPopup();
                 else hideUpSlots();
                 return true;
             }
+
+            if (menu.hasCrafting()) {
+                int tx2 = leftPos + TAB2_OFF;
+                if (mx >= tx2 && mx < tx2 + TAB_W && my >= ty && my < ty + TAB_H) {
+                    craftOpen = !craftOpen;
+                    if (craftOpen) openCraftPopup();
+                    else hideCraftSlots();
+                    return true;
+                }
+            }
         }
 
-        // Fluid bar — left click = fill pack, right click = drain pack
-        // Previously this was inside `if (btn == 0)` so right-click never fired,
-        // and isLeftClick was hardcoded to true rather than reading btn.
+        if (upOpen && menu.hasJetpack2()) {
+            int px = popX, py = popY + popH + 4;
+            int pw = popW;
+            if (inButton(mx, my, px + pw - UP_PAD - 22, py + 4)) {
+                GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(true, -1));
+                pressedButton = 0;
+                pressedUntil = System.currentTimeMillis() + 100;
+                return true;
+            } else if (inButton(mx, my, px + pw - UP_PAD - 10, py + 4)) {
+                GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(true, +1));
+                pressedButton = 1;
+                pressedUntil = System.currentTimeMillis() + 100;
+                return true;
+            } else if (inButton(mx, my, px + pw - UP_PAD - 22, py + 22)) {
+                GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(false, -1));
+                pressedButton = 2;
+                pressedUntil = System.currentTimeMillis() + 100;
+                return true;
+            } else if (inButton(mx, my, px + pw - UP_PAD - 10, py + 22)) {
+                GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(false, +1));
+                pressedButton = 3;
+                pressedUntil = System.currentTimeMillis() + 100;
+                return true;
+            }
+        }
+
         int bx1 = leftPos + imageWidth + BAR_GAP;
         if (mx >= bx1 && mx < bx1 + BAR_W && my >= topPos && my < topPos + imageHeight) {
             if (btn == 0 || btn == 1) {
                 GregPacksNetwork.CHANNEL.sendToServer(new CPacketFluidInteract(btn == 0));
                 return true;
-            }
-
-            if (upOpen && menu.hasJetpack2()) {
-                int px = popX, py = popY + popH + 4;
-                int pw = popW;
-
-                if (inButton(mx, my, px + pw - UP_PAD - 22, py + 4)) {
-                    GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(true, -1));
-                    pressedButton = 0; pressedUntil = System.currentTimeMillis() + 100;
-                    return true;
-                } else if (inButton(mx, my, px + pw - UP_PAD - 10, py + 4)) {
-                    GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(true, +1));
-                    pressedButton = 1; pressedUntil = System.currentTimeMillis() + 100;
-                    return true;
-                } else if (inButton(mx, my, px + pw - UP_PAD - 22, py + 22)) {
-                    GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(false, -1));
-                    pressedButton = 2; pressedUntil = System.currentTimeMillis() + 100;
-                    return true;
-                } else if (inButton(mx, my, px + pw - UP_PAD - 10, py + 22)) {
-                    GregPacksNetwork.CHANNEL.sendToServer(new CPacketJetpackConfig(false, +1));
-                    pressedButton = 3; pressedUntil = System.currentTimeMillis() + 100;
-                    return true;
-                }
             }
         }
 
@@ -277,6 +334,12 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         if (upOpen) {
             int jetpackPanelH = menu.hasJetpack2() ? 44 + 4 : 0;
             if (mx >= popX && mx < popX + popW && my >= popY && my < popY + popH + jetpackPanelH) return false;
+        }
+
+        if (craftOpen) {
+            int cpw = UP_PAD + 3 * SS + ARROW_GAP + SS + UP_PAD;
+            int cph = UP_PAD + 3 * SS + UP_PAD;
+            if (mx >= craftPopX && mx < craftPopX + cpw && my >= craftPopY && my < craftPopY + cph) return false;
         }
 
         return super.hasClickedOutside(mx, my, guiLeft, guiTop, mouseButton);
@@ -323,6 +386,42 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         for (int i = uStart; i < uEnd; i++) menu.getHideableSlot(i).hide();
     }
 
+    private void openCraftPopup() {
+        if (!menu.hasCrafting()) return;
+
+        int cpw = UP_PAD + 3 * SS + ARROW_GAP + SS + UP_PAD;
+        int cph = UP_PAD + 3 * SS + UP_PAD;
+        craftPopY = topPos + Math.max(0, (imageHeight - cph) / 2);
+        int leftCandidate = leftPos - cpw - 8;
+        craftPopX = leftCandidate >= 2 ? leftCandidate : leftPos + imageWidth + 8;
+
+        int gridStart = menu.getCraftingGridStart();
+        for (int i = 0; i < 9; i++) {
+            int col = i % 3, row = i / 3;
+            menu.getHideableSlot(gridStart + i).moveTo(
+                    craftPopX - leftPos + UP_PAD + col * SS,
+                    craftPopY - topPos + UP_PAD + row * SS);
+            menu.getHideableSlot(gridStart + i).show();
+        }
+
+        HideableResultSlot result = menu.getCraftingResultSlotObj();
+        if (result != null) {
+            result.moveTo(
+                    craftPopX - leftPos + UP_PAD + 3 * SS + ARROW_GAP,
+                    craftPopY - topPos + UP_PAD + SS);
+            result.show();
+        }
+    }
+
+    private void hideCraftSlots() {
+        if (!menu.hasCrafting()) return;
+        int gridStart = menu.getCraftingGridStart();
+        if (gridStart < 0) return;
+        for (int i = gridStart; i < gridStart + 9; i++) menu.getHideableSlot(i).hide();
+        HideableResultSlot result = menu.getCraftingResultSlotObj();
+        if (result != null) result.hide();
+    }
+
     // Helpers
     private void show(int i, int x, int y) {
         menu.getHideableSlot(i).moveTo(x, y);
@@ -330,18 +429,25 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     }
 
     private void bevel(GuiGraphics g, int x, int y, int w, int h) {
-        g.fill(x,         y,         x + w,     y + 1,     C_DARK);
-        g.fill(x,         y,         x + 1,     y + h,     C_DARK);
-        g.fill(x,         y + h - 1, x + w,     y + h,     C_LIGHT);
-        g.fill(x + w - 1, y,         x + w,     y + h,     C_LIGHT);
+        g.fill(x, y, x + w, y + 1, C_DARK);
+        g.fill(x, y, x + 1, y + h, C_DARK);
+        g.fill(x, y + h - 1, x + w, y + h, C_LIGHT);
+        g.fill(x + w - 1, y, x + w, y + h, C_LIGHT);
     }
 
     private void slotInset(GuiGraphics g, int x, int y) {
-        g.fill(x,          y,          x + SS,     y + 1,      C_DARK);
-        g.fill(x,          y,          x + 1,      y + SS,     C_DARK);
-        g.fill(x,          y + SS - 1, x + SS,     y + SS,     C_LIGHT);
-        g.fill(x + SS - 1, y,          x + SS,     y + SS,     C_LIGHT);
-        g.fill(x + 1,      y + 1,      x + SS - 1, y + SS - 1, C_SLOT);
+        g.fill(x, y, x + SS, y + 1, C_DARK);
+        g.fill(x, y, x + 1, y + SS, C_DARK);
+        g.fill(x, y + SS - 1, x + SS, y + SS, C_LIGHT);
+        g.fill(x + SS - 1, y, x + SS, y + SS, C_LIGHT);
+        g.fill(x + 1, y + 1, x + SS - 1, y + SS - 1, C_SLOT);
+    }
+
+    private void drawArrowShape(GuiGraphics g, int x, int cy, int color) {
+        g.fill(x, cy - 2, x + 9, cy + 2, color);
+        for (int i = 0; i < 6; i++) { // head
+            g.fill(x + 8 + i, cy - 5 + i, x + 9 + i, cy + 5 - i, color);
+        }
     }
 
     private void bar(GuiGraphics g, int x, int y, int w, int h) {

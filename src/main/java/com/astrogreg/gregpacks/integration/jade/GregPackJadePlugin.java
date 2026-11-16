@@ -2,7 +2,6 @@ package com.astrogreg.gregpacks.integration.jade;
 
 import com.astrogreg.gregpacks.block.OmniPackBlock;
 import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
-import net.minecraft.resources.ResourceLocation;
 import snownee.jade.api.IWailaClientRegistration;
 import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;

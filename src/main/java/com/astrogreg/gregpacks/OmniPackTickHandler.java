@@ -1,6 +1,8 @@
 package com.astrogreg.gregpacks;
 
-import com.astrogreg.gregpacks.util.JetpackConfigHelper;
+import com.gregtechceu.gtceu.api.capability.IElectricItem;
+import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -9,6 +11,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -26,6 +30,7 @@ import com.astrogreg.gregpacks.network.GregPacksNetwork;
 import com.astrogreg.gregpacks.network.SPacketJetpackThrust;
 import com.astrogreg.gregpacks.registry.OmniPackBlockItem;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
+import com.astrogreg.gregpacks.util.JetpackConfigHelper;
 
 import java.util.List;
 
@@ -51,6 +56,8 @@ public class OmniPackTickHandler {
 
         menu.getPackInventory().saveToItem(packStack);
         menu.getUpgradeInventory().saveUpgradesToItem(packStack);
+        if (menu.getCraftingContainer() != null)
+            menu.getCraftingContainer().forceSave();
         player.getInventory().setChanged();
 
         int packSlot = menu.getPackSlotIndex();
@@ -64,7 +71,6 @@ public class OmniPackTickHandler {
         }
     }
 
-    // Player tick
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
@@ -88,15 +94,19 @@ public class OmniPackTickHandler {
         OmniPackInventory upgInv = OmniPackInventory.fromUpgradeItem(activeStack, tier.defaultMaxUpgrades);
         UpgradeEffects effects = new UpgradeEffects(tier, upgInv);
 
-        // Magnet — works from anywhere
+        // Magnet works from anywhere
         if (effects.magnetRadius > 0) applyMagnet(player, level, effects.magnetRadius);
 
-        // Feeding — throttled, works from anywhere
+        // throttled, works from anywhere
         if (player.tickCount % TICK_INTERVAL == 0) {
             if (effects.hasFeeding) applyFeeding(player, activeStack, effects);
         }
 
-        // Jetpack — only when equipped in curios slot
+        // always active if pack has EU stored
+        if (getStoredEU(activeStack) > 0)
+            applyCharging(activeStack, effects);
+
+        // only when equipped in curios slot
         if (canJetpack) applyJetpack(player, activeStack, effects);
     }
 
@@ -125,7 +135,50 @@ public class OmniPackTickHandler {
                 .orElse(ItemStack.EMPTY);
     }
 
-    // Magnet
+    private static void applyCharging(ItemStack packStack, UpgradeEffects effects) {
+        OmniPackInventory packInv = OmniPackInventory.fromItem(packStack, effects.totalSlots);
+        long available = getStoredEU(packStack);
+        if (available <= 0) return;
+
+        boolean dirty = false;
+        for (int i = 0; i < packInv.getContainerSize(); i++) {
+            if (available <= 0) break;
+
+            ItemStack tool = packInv.getItem(i);
+            if (tool.isEmpty()) continue;
+
+            // eu capable
+            IElectricItem electric = tool.getCapability(GTCapability.CAPABILITY_ELECTRIC_ITEM)
+                    .resolve().orElse(null);
+            if (electric != null && electric.chargeable()) {
+                long toCharge = Math.min(available, electric.getTransferLimit());
+                long charged = electric.charge(toCharge, Integer.MAX_VALUE, false, false);
+                if (charged > 0) {
+                    available -= charged;
+                    dirty = true;
+                }
+                continue;
+            }
+
+            // non-eu capable
+            IEnergyStorage forgeEnergy = tool.getCapability(ForgeCapabilities.ENERGY)
+                    .resolve().orElse(null);
+            if (forgeEnergy != null && forgeEnergy.canReceive()) {
+                int toCharge = (int) Math.min(available, Integer.MAX_VALUE);
+                int charged = forgeEnergy.receiveEnergy(toCharge, false);
+                if (charged > 0) {
+                    available -= charged;
+                    dirty = true;
+                }
+            }
+        }
+
+        if (dirty) {
+            packInv.saveToItem(packStack);
+            setStoredEU(packStack, available, effects.totalEnergyStorage);
+        }
+    }
+
     private static void applyMagnet(Player player, Level level, int radius) {
         AABB area = player.getBoundingBox().inflate(radius);
         List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, area);
@@ -136,7 +189,6 @@ public class OmniPackTickHandler {
         }
     }
 
-    // Feeding
     private static void applyFeeding(Player player, ItemStack packStack, UpgradeEffects effects) {
         if (player.getFoodData().getFoodLevel() >= 20) return;
 
@@ -166,7 +218,7 @@ public class OmniPackTickHandler {
         boolean sneaking = CPacketKeyState.isSneaking(player);
         boolean inAir = !player.onGround();
 
-        int speedLevel  = effects.hasJetpack2 ? JetpackConfigHelper.getSpeed(packStack)  : 3;
+        int speedLevel = effects.hasJetpack2 ? JetpackConfigHelper.getSpeed(packStack) : 3;
         int thrustLevel = effects.hasJetpack2 ? JetpackConfigHelper.getThrust(packStack) : 3;
 
         if (!inAir && !jumping) return;
@@ -174,8 +226,8 @@ public class OmniPackTickHandler {
         GregPacksConfig.UpgradeConfigs cfg = GregPacksConfig.INSTANCE.ModuleValues;
         long baseCost = (long) cfg.jetpackModule2EUCost * ((speedLevel + thrustLevel) / 2);
         double thrustY = (effects.hasJetpack2 ? 0.35 : 0.20) * (thrustLevel / 3.0);
-        double capY    = (effects.hasJetpack2 ? 1.00 : 0.50) * (thrustLevel / 3.0);
-        float  speedH  = (effects.hasJetpack2 ? 0.35f : 0.14f) * (speedLevel / 3.0f);
+        double capY = (effects.hasJetpack2 ? 1.00 : 0.50) * (thrustLevel / 3.0);
+        float speedH = (effects.hasJetpack2 ? 0.35f : 0.14f) * (speedLevel / 3.0f);
 
         long storedEU = getStoredEU(packStack);
 
@@ -183,16 +235,15 @@ public class OmniPackTickHandler {
         double newY;
 
         if (jumping && !sneaking) {
-            // Up — costs EU, more if going faster or higher
+            // Up
             if (storedEU < baseCost) return;
             double accel = thrustY * (vel.y < 0.3 ? 2.5 : 1.0);
             newY = Math.min(vel.y + accel, capY);
             setStoredEU(packStack, storedEU - baseCost, effects.totalEnergyStorage);
         } else if (sneaking && !jumping) {
-            // Down — no eu cost
+            // Down
             newY = Math.max(vel.y - 0.08, -0.3);
         } else {
-            // Hover
             long hoverCost = Math.max(1, baseCost / 4);
             if (storedEU < hoverCost) return;
             newY = Math.max(Math.min(vel.y + 0.08, 0.0), -0.08);

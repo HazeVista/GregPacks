@@ -4,7 +4,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class JetpackConfigHelper {
 
-    private static final String KEY_SPEED  = "JetpackSpeed";
+    private static final String KEY_SPEED = "JetpackSpeed";
     private static final String KEY_THRUST = "JetpackThrust";
     private static final int MIN = 1, MAX = 5;
 

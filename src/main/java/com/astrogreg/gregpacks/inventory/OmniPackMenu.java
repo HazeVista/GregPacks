@@ -1,6 +1,5 @@
 package com.astrogreg.gregpacks.inventory;
 
-import com.astrogreg.gregpacks.util.JetpackConfigHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -9,9 +8,12 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
@@ -27,7 +29,7 @@ import com.astrogreg.gregpacks.item.UpgradeItem;
 import com.astrogreg.gregpacks.item.UpgradeType;
 import com.astrogreg.gregpacks.registry.GregPacksMenus;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
-import lombok.Setter;
+import com.astrogreg.gregpacks.util.JetpackConfigHelper;
 
 import javax.annotation.Nullable;
 
@@ -47,11 +49,22 @@ public class OmniPackMenu extends AbstractContainerMenu {
     private final ContainerData energyData = new SimpleContainerData(4);
     private final ContainerData jetpackData = new SimpleContainerData(2);
 
+    private OmniPackCraftingContainer craftingContainer = null;
+    private final ResultContainer craftingResult = new ResultContainer();
+    private int craftingGridStart = -1;
+    private int craftingResultSlot = -1;
+    private HideableResultSlot craftingResultSlotObj = null;
+    private boolean craftingInstalled = false;
+
     private ServerPlayer serverPlayer = null;
     private OmniPackBlockEntity sourceBlockEntity = null;
+    private Inventory playerInventory = null;
 
-    @Setter
     private String syncedFluidKey = "";
+
+    public void setSyncedFluidKey(String key) {
+        this.syncedFluidKey = key;
+    }
 
     // Server-side constructor
     public OmniPackMenu(int containerId, Inventory playerInventory,
@@ -63,22 +76,45 @@ public class OmniPackMenu extends AbstractContainerMenu {
         this.maxUpgrades = upgradeInventory.getContainerSize();
         this.packSlots = packInventory.getContainerSize();
         this.packInventory = packInventory;
-
+        this.playerInventory = playerInventory;
+        this.craftingInstalled = new UpgradeEffects(tier, upgradeInventory).hasCrafting;
         addPackSlots();
         addUpgradeSlots();
         addPlayerSlots(playerInventory);
+        addCraftingSlots();
         addDataSlots(fluidData);
         addDataSlots(energyData);
         addDataSlots(jetpackData);
         syncFluidData();
     }
 
-    // Client-side constructor — reads real slot count from buf
+    // Client-side constructor
     public OmniPackMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         this(containerId, playerInventory,
                 new OmniPackInventory(buf.readShort()),
                 new OmniPackInventory(buf.readByte()),
-                OmniPackTier.values()[buf.readByte()]);
+                OmniPackTier.values()[buf.readByte()],
+                buf.readBoolean());
+    }
+
+    private OmniPackMenu(int containerId, Inventory playerInventory,
+                         OmniPackInventory packInventory, OmniPackInventory upgradeInventory,
+                         OmniPackTier tier, boolean craftingInstalled) {
+        super(GregPacksMenus.OMNIPACK_MENU.get(), containerId);
+        this.tier = tier;
+        this.upgradeInventory = upgradeInventory;
+        this.maxUpgrades = upgradeInventory.getContainerSize();
+        this.packSlots = packInventory.getContainerSize();
+        this.packInventory = packInventory;
+        this.playerInventory = playerInventory;
+        this.craftingInstalled = craftingInstalled;
+        addPackSlots();
+        addUpgradeSlots();
+        addPlayerSlots(playerInventory);
+        addCraftingSlots();
+        addDataSlots(fluidData);
+        addDataSlots(energyData);
+        addDataSlots(jetpackData);
     }
 
     private void addPackSlots() {
@@ -151,9 +187,69 @@ public class OmniPackMenu extends AbstractContainerMenu {
         }
     }
 
+    private void addCraftingSlots() {
+        if (!craftingInstalled) return;
+
+        craftingContainer = new OmniPackCraftingContainer(ItemStack.EMPTY);
+        craftingGridStart = slots.size();
+
+        for (int i = 0; i < 9; i++) {
+            final int idx = i;
+            addSlot(new HideableSlot(craftingContainer, idx, 0, 0) {
+
+                @Override
+                public void setChanged() {
+                    super.setChanged();
+                    updateCraftingResult();
+                }
+            });
+        }
+
+        craftingResultSlot = slots.size();
+        HideableResultSlot resultSlotObj = new HideableResultSlot(
+                playerInventory.player,
+                craftingContainer,
+                craftingResult,
+                0, 0, 0) {
+
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return false;
+            }
+
+            @Override
+            public void onTake(Player player, ItemStack stack) {
+                super.onTake(player, stack);
+                craftingContainer.save();
+                if (sourceBlockEntity != null) sourceBlockEntity.setChanged();
+                updateCraftingResult();
+            }
+        };
+        craftingResultSlotObj = resultSlotObj;
+        addSlot(resultSlotObj);
+    }
+
+    private void updateCraftingResult() {
+        if (craftingContainer == null || serverPlayer == null) return;
+        var level = serverPlayer.level();
+        var optional = level.getRecipeManager()
+                .getRecipeFor(RecipeType.CRAFTING, craftingContainer, level);
+        if (optional.isPresent()) {
+            CraftingRecipe recipe = optional.get();
+            craftingResult.setItem(0, recipe.assemble(craftingContainer, level.registryAccess()));
+        } else {
+            craftingResult.setItem(0, ItemStack.EMPTY);
+        }
+        broadcastChanges();
+    }
+
     @Override
     public void slotsChanged(Container container) {
         super.slotsChanged(container);
+
+        if (craftingContainer != null && container == (Container) craftingContainer && serverPlayer != null) {
+            updateCraftingResult();
+        }
 
         if (serverPlayer == null) return;
         if (container != upgradeInventory) return;
@@ -211,34 +307,50 @@ public class OmniPackMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        ItemStack result = ItemStack.EMPTY;
         Slot slot = slots.get(index);
-        if (slot.hasItem()) {
-            ItemStack slotStack = slot.getItem();
-            result = slotStack.copy();
+        if (slot == null || !slot.hasItem()) return ItemStack.EMPTY;
 
-            int upgradeStart = packSlots;
-            int upgradeEnd = packSlots + maxUpgrades;
-            int playerEnd = slots.size();
+        ItemStack slotStack = slot.getItem();
+        ItemStack result = slotStack.copy();
 
-            if (index < upgradeStart) {
-                if (!moveItemStackTo(slotStack, upgradeEnd, playerEnd, true))
-                    return ItemStack.EMPTY;
-            } else if (index < upgradeEnd) {
-                if (!moveItemStackTo(slotStack, upgradeEnd, playerEnd, true))
-                    return ItemStack.EMPTY;
-            } else {
-                if (slotStack.getItem() instanceof UpgradeItem) {
-                    if (!moveItemStackTo(slotStack, upgradeStart, upgradeEnd, false))
-                        return ItemStack.EMPTY;
-                } else {
-                    if (!moveItemStackTo(slotStack, 0, upgradeStart, false))
-                        return ItemStack.EMPTY;
-                }
+        final int packStart = 0, packEnd = packSlots;
+        final int upgradeStart = packSlots, upgradeEnd = packSlots + maxUpgrades;
+        final int playerStart = upgradeEnd, playerEnd = upgradeEnd + 36;
+        final boolean hasCraft = craftingGridStart >= 0;
+        final int gridStart = craftingGridStart, gridEnd = hasCraft ? craftingGridStart + 9 : -1;
+
+        if (hasCraft && index == craftingResultSlot) {
+            if (!moveItemStackTo(slotStack, packStart, packEnd, false) &&
+                    !moveItemStackTo(slotStack, playerStart, playerEnd, true)) {
+                return ItemStack.EMPTY;
             }
+            slot.onQuickCraft(slotStack, result);
+        } else if (index >= packStart && index < packEnd) {
+            if (!moveItemStackTo(slotStack, playerStart, playerEnd, true)) return ItemStack.EMPTY;
+        } else if (index >= upgradeStart && index < upgradeEnd) {
+            if (!moveItemStackTo(slotStack, playerStart, playerEnd, true)) return ItemStack.EMPTY;
+        } else if (hasCraft && index >= gridStart && index < gridEnd) {
+            if (!moveItemStackTo(slotStack, packStart, packEnd, false) &&
+                    !moveItemStackTo(slotStack, playerStart, playerEnd, true)) {
+                return ItemStack.EMPTY;
+            }
+        } else {
+            if (slotStack.getItem() instanceof UpgradeItem) {
+                if (!moveItemStackTo(slotStack, upgradeStart, upgradeEnd, false)) return ItemStack.EMPTY;
+            } else if (!moveItemStackTo(slotStack, packStart, packEnd, false)) {
+                return ItemStack.EMPTY;
+            }
+        }
 
-            if (slotStack.isEmpty()) slot.set(ItemStack.EMPTY);
-            else slot.setChanged();
+        if (slotStack.isEmpty()) slot.set(ItemStack.EMPTY);
+        else slot.setChanged();
+
+        if (slotStack.getCount() == result.getCount()) return ItemStack.EMPTY;
+
+        slot.onTake(player, slotStack);
+
+        if (hasCraft && index == craftingResultSlot && !slotStack.isEmpty()) {
+            player.drop(slotStack, false);
         }
         return result;
     }
@@ -301,13 +413,13 @@ public class OmniPackMenu extends AbstractContainerMenu {
             maxEU = new UpgradeEffects(tier, upgradeInventory).totalEnergyStorage;
         }
 
-        int euScaled  = (int) Math.min(storedEU / 100, Integer.MAX_VALUE);
-        int maxScaled = (int) Math.min(maxEU   / 100, Integer.MAX_VALUE);
+        int euScaled = (int) Math.min(storedEU / 100, Integer.MAX_VALUE);
+        int maxScaled = (int) Math.min(maxEU / 100, Integer.MAX_VALUE);
 
-        energyData.set(0, (euScaled  >> 16) & 0xFFFF);
-        energyData.set(1,  euScaled         & 0xFFFF);
+        energyData.set(0, (euScaled >> 16) & 0xFFFF);
+        energyData.set(1, euScaled & 0xFFFF);
         energyData.set(2, (maxScaled >> 16) & 0xFFFF);
-        energyData.set(3,  maxScaled        & 0xFFFF);
+        energyData.set(3, maxScaled & 0xFFFF);
     }
 
     public ItemStack getActiveStack() {
@@ -327,9 +439,13 @@ public class OmniPackMenu extends AbstractContainerMenu {
         return effects.totalFluidStorage;
     }
 
-    public int getJetpackSpeed()  { return jetpackData.get(0); }
+    public int getJetpackSpeed() {
+        return jetpackData.get(0);
+    }
 
-    public int getJetpackThrust() { return jetpackData.get(1); }
+    public int getJetpackThrust() {
+        return jetpackData.get(1);
+    }
 
     public int getSyncedFluidAmount() {
         return (fluidData.get(0) << 16) | (fluidData.get(1) & 0xFFFF);
@@ -361,7 +477,8 @@ public class OmniPackMenu extends AbstractContainerMenu {
         for (int i = 0; i < maxUpgrades; i++) {
             ItemStack s = upgradeInventory.getItem(i);
             if (!s.isEmpty() && s.getItem() instanceof UpgradeItem u &&
-                    u.getUpgradeType() == UpgradeType.JETPACK_II) return true;
+                    u.getUpgradeType() == UpgradeType.JETPACK_II)
+                return true;
         }
         return false;
     }
@@ -385,6 +502,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
 
     public void setSourceStack(ItemStack stack) {
         this.sourceStack = stack;
+        if (craftingContainer != null) craftingContainer.rebind(stack);
     }
 
     public ItemStack getSourceStack() {
@@ -393,6 +511,9 @@ public class OmniPackMenu extends AbstractContainerMenu {
 
     public void setSourceBlockEntity(OmniPackBlockEntity be) {
         this.sourceBlockEntity = be;
+        if (craftingContainer != null && be != null) {
+            craftingContainer.rebind(ItemStack.EMPTY);
+        }
     }
 
     public OmniPackBlockEntity getSourceBlockEntity() {
@@ -428,10 +549,37 @@ public class OmniPackMenu extends AbstractContainerMenu {
     }
 
     public HideableSlot getHideableSlot(int index) {
-        return (HideableSlot) slots.get(index);
+        Slot s = slots.get(index);
+        if (!(s instanceof HideableSlot hs)) {
+            throw new IllegalArgumentException(
+                    "Slot " + index + " is not a HideableSlot it's a " + s.getClass().getSimpleName() +
+                            ". Check that renderbg skips crafting slots (indices " + craftingGridStart + ".." +
+                            (craftingGridStart >= 0 ? craftingGridStart + 9 : "?") + ").");
+        }
+        return hs;
     }
 
     public Container getContainer() {
         return this.packInventory;
+    }
+
+    public boolean hasCrafting() {
+        return craftingGridStart >= 0;
+    }
+
+    public int getCraftingGridStart() {
+        return craftingGridStart;
+    }
+
+    public int getCraftingResultSlot() {
+        return craftingResultSlot;
+    }
+
+    public HideableResultSlot getCraftingResultSlotObj() {
+        return craftingResultSlotObj;
+    }
+
+    public OmniPackCraftingContainer getCraftingContainer() {
+        return craftingContainer;
     }
 }

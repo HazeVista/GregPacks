@@ -17,9 +17,9 @@ import org.jetbrains.annotations.NotNull;
  * Central helper for opening the OmniPack GUI from any context.
  *
  * Buffer layout sent to client (must match OmniPackMenu client constructor):
- * [0] short — real pack slot count (base + upgrade bonuses)
- * [1] byte — upgrade slot count (= tier.defaultMaxUpgrades)
- * [2] byte — tier ordinal
+ * [0] short - real pack slot count (base + upgrade bonuses)
+ * [1] byte - upgrade slot count (= tier.defaultMaxUpgrades)
+ * [2] byte - tier ordinal
  */
 public class OpenPackHelper {
 
@@ -46,9 +46,10 @@ public class OpenPackHelper {
                 return menu;
             }
         }, buf -> {
-            buf.writeShort(effects.totalSlots);          // real pack slot count
-            buf.writeByte(tier.defaultMaxUpgrades);      // upgrade slot count
-            buf.writeByte(tier.ordinal());               // tier ordinal
+            buf.writeShort(effects.totalSlots);     // real pack slot count
+            buf.writeByte(tier.defaultMaxUpgrades); // upgrade slot count
+            buf.writeByte(tier.ordinal());          // tier ordinal
+            buf.writeBoolean(effects.hasCrafting);  // crafting module installed
         });
     }
 

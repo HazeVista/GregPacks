@@ -1,7 +1,5 @@
 package com.astrogreg.gregpacks.network;
 
-import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
-import com.astrogreg.gregpacks.inventory.OmniPackMenu;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -10,6 +8,9 @@ import net.minecraftforge.fluids.FluidActionResult;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.network.NetworkEvent;
+
+import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
+import com.astrogreg.gregpacks.inventory.OmniPackMenu;
 
 import java.util.function.Supplier;
 
@@ -48,13 +49,16 @@ public class CPacketFluidInteract {
                 if (!result.isSuccess()) {
                     result = carried.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).map(itemHandler -> {
                         // source = itemHandler (drum), destination = pack
-                        int moved = FluidUtil.tryFluidTransfer(packHandler, itemHandler, Integer.MAX_VALUE, true).getAmount();
-                        return moved > 0 ? new FluidActionResult(itemHandler.getContainer()) : FluidActionResult.FAILURE;
+                        int moved = FluidUtil.tryFluidTransfer(packHandler, itemHandler, Integer.MAX_VALUE, true)
+                                .getAmount();
+                        return moved > 0 ? new FluidActionResult(itemHandler.getContainer()) :
+                                FluidActionResult.FAILURE;
                     }).orElse(FluidActionResult.FAILURE);
                 }
             } else {
                 result = carried.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).map(itemHandler -> {
-                    int moved = FluidUtil.tryFluidTransfer(itemHandler, packHandler, Integer.MAX_VALUE, true).getAmount();
+                    int moved = FluidUtil.tryFluidTransfer(itemHandler, packHandler, Integer.MAX_VALUE, true)
+                            .getAmount();
                     return moved > 0 ? new FluidActionResult(itemHandler.getContainer()) : FluidActionResult.FAILURE;
                 }).orElse(FluidActionResult.FAILURE);
 
