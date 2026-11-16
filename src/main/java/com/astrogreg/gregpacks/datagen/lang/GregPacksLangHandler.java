@@ -71,7 +71,6 @@ public class GregPacksLangHandler {
         provider.add("key.gregpacks.open_omnipack", "Open OmniPack Inventory");
         provider.add("key.category.gregpacks", "GregPacks");
 
-
         // Jade
         provider.add("gregpacks.jade.energy", "Energy: %s / %s EU");
         provider.add("gregpacks.jade.fluids", "Fluids:");

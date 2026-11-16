@@ -71,7 +71,6 @@ public class OmniPackBlockEntity extends BlockEntity implements MenuProvider {
 
         this.itemCap = LazyOptional.of(() -> new InvWrapper(packInventory));
 
-
         this.fluidCap = LazyOptional.of(() -> new IFluidHandler() {
 
             @Override
@@ -204,7 +203,6 @@ public class OmniPackBlockEntity extends BlockEntity implements MenuProvider {
         return menu;
     }
 
-
     @Override
     public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == ForgeCapabilities.ITEM_HANDLER) return itemCap.cast();
@@ -213,7 +211,6 @@ public class OmniPackBlockEntity extends BlockEntity implements MenuProvider {
         if (cap == ForgeCapabilities.ENERGY) return forgeEnergyCap.cast();
         return super.getCapability(cap, side);
     }
-
 
     public void loadFromItemStack(ItemStack stack) {
         UpgradeEffects effects = new UpgradeEffects(tier,
@@ -240,7 +237,6 @@ public class OmniPackBlockEntity extends BlockEntity implements MenuProvider {
         }
         return stack;
     }
-
 
     public void setFluid(FluidStack newFluid) {
         this.fluid = (newFluid == null) ? FluidStack.EMPTY : newFluid;

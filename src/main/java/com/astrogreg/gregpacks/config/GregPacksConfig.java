@@ -53,7 +53,6 @@ public class GregPacksConfig {
             @Configurable
             @Configurable.Comment({ "Number of upgrade slots on the Basic OmniPack", "Default: 6" })
             public int basicPackUpgradeSlots = 6;
-
         }
 
         public static class AdvancedPack {

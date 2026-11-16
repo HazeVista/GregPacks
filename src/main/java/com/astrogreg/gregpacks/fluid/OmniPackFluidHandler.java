@@ -105,7 +105,6 @@ public class OmniPackFluidHandler implements IFluidHandlerItem {
         return result;
     }
 
-
     private FluidStack drainInternal(int maxDrain, FluidAction action) {
         FluidStack current = FluidNBTHelper.getFluid(container);
         if (current.isEmpty()) return FluidStack.EMPTY;

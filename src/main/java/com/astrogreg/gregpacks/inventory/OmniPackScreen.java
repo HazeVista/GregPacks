@@ -150,7 +150,6 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         g.fill(px, py, px + pw, py + ph, C_BG);
         bevel(g, px, py, pw, ph);
 
-
         g.drawString(font, "Speed: " + menu.getJetpackSpeed(), px + UP_PAD, py + 6, C_TEXT, false);
         renderSmallButton(g, px + pw - UP_PAD - 22, py + 4, "-", 0);
         renderSmallButton(g, px + pw - UP_PAD - 10, py + 4, "+", 1);
