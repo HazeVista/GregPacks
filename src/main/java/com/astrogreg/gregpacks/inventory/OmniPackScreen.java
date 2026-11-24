@@ -30,7 +30,8 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     // Layout
     private static final int PAD = 7;
     private static final int COLS = 9;
-    private static final int SS = 18;
+    private static final int SLOT_S = 18; // gulp
+    private static final int LABEL_H = 14;
 
     private static final int BAR_W = 10;
     private static final int BAR_SEP = 4;
@@ -56,21 +57,28 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     private int pressedButton = -1;
     private long pressedUntil = 0;
 
-    private final int packRows;
+    private final int packGridBottom;
+    private final int invTop;
+    private final int hotbarTop;
 
     public OmniPackScreen(OmniPackMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        packRows = (int) Math.ceil(menu.getPackSlots() / (double) COLS);
-        imageWidth = PAD + COLS * SS + PAD;
-        imageHeight = PAD + 10 + packRows * SS + PAD + 4 + 3 * SS + PAD + 4 + SS + PAD;
+        int packRows = (int) Math.ceil(menu.getPackSlots() / (double) COLS);
+        packGridBottom = PAD + 10 + packRows * SLOT_S;
+        invTop = packGridBottom + LABEL_H;
+        hotbarTop = invTop + 3 * SLOT_S + 4;
+        imageWidth = PAD + COLS * SLOT_S + PAD;
+        imageHeight = hotbarTop + SLOT_S + PAD;
     }
 
     @Override
     protected void init() {
         super.init();
         applyMainLayout();
-        hideUpSlots();
-        hideCraftSlots();
+        if (upOpen) openPopup();
+        else hideUpSlots();
+        if (craftOpen) openCraftPopup();
+        else hideCraftSlots();
     }
 
     // Render
@@ -92,10 +100,6 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         g.fill(x, y, x + imageWidth, y + imageHeight, C_BG);
         raised(g, x, y, imageWidth, imageHeight);
 
-        int divY = y + PAD + 10 + packRows * SS + 4;
-        g.fill(x + PAD, divY, x + imageWidth - PAD, divY + 1, C_SLOT_DARK);
-        g.fill(x + PAD, divY + 1, x + imageWidth - PAD, divY + 2, C_LIGHT);
-
         int uStart = menu.getPackSlots(), uEnd = uStart + menu.getMaxUpgrades();
         int craftStart = menu.getCraftingGridStart();
         int craftEnd = craftStart >= 0 ? craftStart + 10 : -1;
@@ -110,9 +114,10 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
 
     @Override
     protected void renderLabels(GuiGraphics g, int mx, int my) {
-        g.drawString(font, title, PAD, PAD, C_TEXT, false);
-        int labelY = PAD + 10 + packRows * SS + 6;
-        g.drawString(font, Component.translatable("container.inventory"), PAD, labelY, C_TEXT, false);
+        int titleY = (PAD + 10 - font.lineHeight) / 2;
+        g.drawString(font, title, PAD, titleY, C_TEXT, false);
+        int invLabelY = packGridBottom + (LABEL_H - font.lineHeight) / 2;
+        g.drawString(font, Component.translatable("container.inventory"), PAD, invLabelY, C_TEXT, false);
     }
 
     private void renderTab(GuiGraphics g, int mx, int my) {
@@ -182,8 +187,8 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     }
 
     private void renderCraftPopup(GuiGraphics g) {
-        int pw = UP_PAD + 3 * SS + ARROW_GAP + SS + UP_PAD;
-        int ph = UP_PAD + 3 * SS + UP_PAD;
+        int pw = UP_PAD + 3 * SLOT_S + ARROW_GAP + SLOT_S + UP_PAD;
+        int ph = UP_PAD + 3 * SLOT_S + UP_PAD;
         g.fill(craftPopX, craftPopY, craftPopX + pw, craftPopY + ph, C_BG);
         raised(g, craftPopX, craftPopY, pw, ph);
 
@@ -195,8 +200,8 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
             }
         }
         // The arrow
-        int arrowX = craftPopX + UP_PAD + 3 * SS + 4;
-        int arrowCY = craftPopY + UP_PAD + SS + SS / 2;
+        int arrowX = craftPopX + UP_PAD + 3 * SLOT_S + 4;
+        int arrowCY = craftPopY + UP_PAD + SLOT_S + SLOT_S / 2;
         drawArrowShape(g, arrowX + 1, arrowCY + 1, C_DARK);
         drawArrowShape(g, arrowX, arrowCY, C_SLOT);
 
@@ -213,12 +218,12 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         int bh = imageHeight;
 
         // Fluid bar
-        bar(g, bx1, by, BAR_W, bh);
+        bar(g, bx1, by, bh);
         int amt = menu.getSyncedFluidAmount(), cap = menu.getSyncedFluidCapacity();
         if (amt > 0 && cap > 0) {
             int fh = (int) ((float) amt / cap * (bh - 2));
             Fluid fl = menu.getSyncedFluid();
-            renderFluidFill(g, bx1 + 1, by + bh - 1 - fh, BAR_W - 2, fh, fl);
+            renderFluidFill(g, bx1 + 1, by + bh - 1 - fh, fh, fl);
         }
         if (mx >= bx1 && mx < bx1 + BAR_W && my >= by && my < by + bh) {
             Fluid fl = menu.getSyncedFluid();
@@ -231,7 +236,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         }
 
         // Energy bar
-        bar(g, bx2, by, BAR_W, bh);
+        bar(g, bx2, by, bh);
         long eu = menu.getSyncedEU(), euMax = menu.getSyncedMaxEU();
         if (eu > 0 && euMax > 0) {
             int fh = (int) ((float) eu / euMax * (bh - 2));
@@ -322,8 +327,8 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         }
 
         if (craftOpen) {
-            int cpw = UP_PAD + 3 * SS + ARROW_GAP + SS + UP_PAD;
-            int cph = UP_PAD + 3 * SS + UP_PAD;
+            int cpw = UP_PAD + 3 * SLOT_S + ARROW_GAP + SLOT_S + UP_PAD;
+            int cph = UP_PAD + 3 * SLOT_S + UP_PAD;
             if (mx >= craftPopX && mx < craftPopX + cpw && my >= craftPopY && my < craftPopY + cph) return false;
         }
 
@@ -335,23 +340,21 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         int uStart = menu.getPackSlots(), uEnd = uStart + menu.getMaxUpgrades();
 
         for (int i = 0; i < uStart; i++)
-            show(i, PAD + (i % COLS) * SS, PAD + 10 + (i / COLS) * SS);
+            show(i, PAD + (i % COLS) * SLOT_S, PAD + 10 + (i / COLS) * SLOT_S);
 
-        int invY = PAD + 10 + packRows * SS + 8;
         for (int i = 0; i < 27; i++)
-            show(uEnd + i, PAD + (i % 9) * SS, invY + (i / 9) * SS);
+            show(uEnd + i, PAD + (i % 9) * SLOT_S, invTop + (i / 9) * SLOT_S);
 
-        int hotY = invY + 3 * SS + 4;
         for (int i = 0; i < 9; i++)
-            show(uEnd + 27 + i, PAD + i * SS, hotY);
+            show(uEnd + 27 + i, PAD + i * SLOT_S, hotbarTop);
     }
 
     private void openPopup() {
         int uStart = menu.getPackSlots(), uEnd = uStart + menu.getMaxUpgrades();
         int rows = (int) Math.ceil(menu.getMaxUpgrades() / (double) UP_COLS);
         int minW = menu.hasJetpack2() ? 90 : 0;
-        popW = Math.max(minW, UP_PAD + UP_COLS * SS + UP_PAD);
-        popH = UP_PAD + rows * SS + UP_PAD;
+        popW = Math.max(minW, UP_PAD + UP_COLS * SLOT_S + UP_PAD);
+        popH = UP_PAD + rows * SLOT_S + UP_PAD;
         popY = topPos;
 
         int leftCandidate = leftPos - popW - 4;
@@ -360,8 +363,8 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         for (int i = uStart; i < uEnd; i++) {
             int idx = i - uStart;
             menu.getHideableSlot(i).moveTo(
-                    popX - leftPos + UP_PAD + (idx % UP_COLS) * SS,
-                    popY - topPos + UP_PAD + (idx / UP_COLS) * SS);
+                    popX - leftPos + UP_PAD + (idx % UP_COLS) * SLOT_S,
+                    popY - topPos + UP_PAD + (idx / UP_COLS) * SLOT_S);
             menu.getHideableSlot(i).show();
         }
     }
@@ -374,8 +377,8 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     private void openCraftPopup() {
         if (!menu.hasCrafting()) return;
 
-        int cpw = UP_PAD + 3 * SS + ARROW_GAP + SS + UP_PAD;
-        int cph = UP_PAD + 3 * SS + UP_PAD;
+        int cpw = UP_PAD + 3 * SLOT_S + ARROW_GAP + SLOT_S + UP_PAD;
+        int cph = UP_PAD + 3 * SLOT_S + UP_PAD;
         craftPopY = topPos + Math.max(0, (imageHeight - cph) / 2);
         int leftCandidate = leftPos - cpw - 8;
         craftPopX = leftCandidate >= 2 ? leftCandidate : leftPos + imageWidth + 8;
@@ -384,16 +387,16 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         for (int i = 0; i < 9; i++) {
             int col = i % 3, row = i / 3;
             menu.getHideableSlot(gridStart + i).moveTo(
-                    craftPopX - leftPos + UP_PAD + col * SS,
-                    craftPopY - topPos + UP_PAD + row * SS);
+                    craftPopX - leftPos + UP_PAD + col * SLOT_S,
+                    craftPopY - topPos + UP_PAD + row * SLOT_S);
             menu.getHideableSlot(gridStart + i).show();
         }
 
         HideableResultSlot result = menu.getCraftingResultSlotObj();
         if (result != null) {
             result.moveTo(
-                    craftPopX - leftPos + UP_PAD + 3 * SS + ARROW_GAP,
-                    craftPopY - topPos + UP_PAD + SS);
+                    craftPopX - leftPos + UP_PAD + 3 * SLOT_S + ARROW_GAP,
+                    craftPopY - topPos + UP_PAD + SLOT_S);
             result.show();
         }
     }
@@ -428,13 +431,13 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     }
 
     private void slotInset(GuiGraphics g, int x, int y) {
-        g.fill(x, y, x + SS, y + SS, C_SLOT);
-        g.fill(x, y, x + SS, y + 1, C_SLOT_DARK);
-        g.fill(x, y, x + 1, y + SS, C_SLOT_DARK);
-        g.fill(x, y + SS - 1, x + SS, y + SS, C_LIGHT);
-        g.fill(x + SS - 1, y, x + SS, y + SS, C_LIGHT);
-        g.fill(x + SS - 1, y, x + SS, y + 1, C_SLOT);
-        g.fill(x, y + SS - 1, x + 1, y + SS, C_SLOT);
+        g.fill(x, y, x + SLOT_S, y + SLOT_S, C_SLOT);
+        g.fill(x, y, x + SLOT_S, y + 1, C_SLOT_DARK);
+        g.fill(x, y, x + 1, y + SLOT_S, C_SLOT_DARK);
+        g.fill(x, y + SLOT_S - 1, x + SLOT_S, y + SLOT_S, C_LIGHT);
+        g.fill(x + SLOT_S - 1, y, x + SLOT_S, y + SLOT_S, C_LIGHT);
+        g.fill(x + SLOT_S - 1, y, x + SLOT_S, y + 1, C_SLOT);
+        g.fill(x, y + SLOT_S - 1, x + 1, y + SLOT_S, C_SLOT);
     }
 
     private void drawArrowShape(GuiGraphics g, int x, int cy, int color) {
@@ -444,15 +447,15 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         }
     }
 
-    private void bar(GuiGraphics g, int x, int y, int w, int h) {
-        g.fill(x, y, x + w, y + h, C_BAR);
-        sunken(g, x, y, w, h);
+    private void bar(GuiGraphics g, int x, int y, int h) {
+        g.fill(x, y, x + OmniPackScreen.BAR_W, y + h, C_BAR);
+        sunken(g, x, y, OmniPackScreen.BAR_W, h);
     }
 
-    private void renderFluidFill(GuiGraphics g, int x, int top, int w, int fillH, Fluid fl) {
+    private void renderFluidFill(GuiGraphics g, int x, int top, int fillH, Fluid fl) {
         if (fillH <= 0) return;
         if (fl == null) {
-            g.fill(x, top, x + w, top + fillH, C_FLUID);
+            g.fill(x, top, x + 8, top + fillH, C_FLUID);
             return;
         }
 
@@ -466,10 +469,10 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         float b = (tint & 0xFF) / 255f;
 
         int bottom = top + fillH;
-        g.enableScissor(x, top, x + w, bottom);
+        g.enableScissor(x, top, x + 8, bottom);
         g.setColor(r, gn, b, 1f);
         for (int yy = bottom - 16; yy > top - 16; yy -= 16) {
-            g.blit(x, yy, 0, w, 16, sprite);
+            g.blit(x, yy, 0, 8, 16, sprite);
         }
         g.setColor(1f, 1f, 1f, 1f);
         g.disableScissor();
