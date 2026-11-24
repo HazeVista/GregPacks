@@ -45,6 +45,7 @@ public class MaintenanceModuleHandler {
                         OmniPackInventory.fromUpgradeItem(packStack, tier.defaultMaxUpgrades)).totalSlots);
 
         boolean allFixed = true;
+        boolean changed = false;
         for (int i = 0; i < 6; i++) {
             if (((problems >> i) & 1) == 1) continue;
 
@@ -55,15 +56,15 @@ public class MaintenanceModuleHandler {
                 continue;
             }
             hatch.setMaintenanceFixed(i);
-            toolFound.setDamageValue(toolFound.getDamageValue() + 1);
-            if (toolFound.getDamageValue() >= toolFound.getMaxDamage()) {
-                toolFound = ItemStack.EMPTY;
-            }
+            ToolHelper.damageItem(toolFound, player, 1);
+            changed = true;
         }
+
+        if (changed) packInv.saveToItem(packStack);
 
         boolean anyToolFound = false;
         for (int i = 0; i < 6; i++) {
-            if (((problems >> i) & 1) == 1) continue; // Already fixed, skip
+            if (((problems >> i) & 1) == 1) continue;
             GTToolType required = getToolForProblem(i);
             if (findToolInPack(packInv, required) != null) {
                 anyToolFound = true;

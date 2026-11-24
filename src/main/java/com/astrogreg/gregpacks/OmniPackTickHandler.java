@@ -102,9 +102,16 @@ public class OmniPackTickHandler {
             if (effects.hasFeeding) applyFeeding(player, activeStack, effects);
         }
 
-        // always active if pack has EU stored
-        if (getStoredEU(activeStack) > 0)
-            applyCharging(activeStack, effects);
+        // now always active if pack has EU stored
+        if (getStoredEU(activeStack) > 0) {
+            OmniPackMenu openMenu = null;
+            if (player.containerMenu instanceof OmniPackMenu opm
+                    && opm.getSourceBlockEntity() == null
+                    && opm.getActiveStack() == activeStack) {
+                openMenu = opm;
+            }
+            applyCharging(activeStack, effects, openMenu);
+        }
 
         // only when equipped in curios slot
         if (canJetpack) applyJetpack(player, activeStack, effects);
@@ -135,10 +142,13 @@ public class OmniPackTickHandler {
                 .orElse(ItemStack.EMPTY);
     }
 
-    private static void applyCharging(ItemStack packStack, UpgradeEffects effects) {
-        OmniPackInventory packInv = OmniPackInventory.fromItem(packStack, effects.totalSlots);
+    private static void applyCharging(ItemStack packStack, UpgradeEffects effects, OmniPackMenu openMenu) {
         long available = getStoredEU(packStack);
         if (available <= 0) return;
+
+        OmniPackInventory packInv = openMenu != null
+                ? openMenu.getPackInventory()
+                : OmniPackInventory.fromItem(packStack, effects.totalSlots);
 
         boolean dirty = false;
         for (int i = 0; i < packInv.getContainerSize(); i++) {
@@ -176,6 +186,7 @@ public class OmniPackTickHandler {
         if (dirty) {
             packInv.saveToItem(packStack);
             setStoredEU(packStack, available, effects.totalEnergyStorage);
+            if (openMenu != null) openMenu.broadcastChanges();
         }
     }
 
@@ -184,7 +195,7 @@ public class OmniPackTickHandler {
         List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, area);
         for (ItemEntity entity : items) {
             if (entity.hasPickUpDelay()) continue;
-            if (getTier(entity.getItem()) != null) continue; // don't attract other packs
+            if (getTier(entity.getItem()) != null) continue; // it doesn't attract other packs
             entity.playerTouch(player);
         }
     }
