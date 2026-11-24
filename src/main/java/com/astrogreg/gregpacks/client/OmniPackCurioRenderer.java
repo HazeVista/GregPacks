@@ -19,14 +19,14 @@ public class OmniPackCurioRenderer implements ICurioRenderer {
 
     @Override
     public <T extends LivingEntity, M extends EntityModel<T>> void render(
-                                                                          ItemStack stack, SlotContext slotContext,
-                                                                          PoseStack poseStack,
-                                                                          RenderLayerParent<T, M> renderLayerParent,
-                                                                          MultiBufferSource bufferSource,
-                                                                          int light, float limbSwing,
-                                                                          float limbSwingAmount,
-                                                                          float partialTicks, float ageInTicks,
-                                                                          float netHeadYaw, float headPitch) {
+            ItemStack stack, SlotContext slotContext,
+            PoseStack poseStack,
+            RenderLayerParent<T, M> renderLayerParent,
+            MultiBufferSource bufferSource,
+            int light, float limbSwing,
+            float limbSwingAmount,
+            float partialTicks, float ageInTicks,
+            float netHeadYaw, float headPitch) {
         if (!(stack.getItem() instanceof net.minecraft.world.item.BlockItem blockItem)) return;
 
         poseStack.pushPose();

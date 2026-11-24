@@ -1,15 +1,17 @@
 package com.astrogreg.gregpacks.inventory;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-
 import com.astrogreg.gregpacks.network.CPacketFluidInteract;
 import com.astrogreg.gregpacks.network.CPacketJetpackConfig;
 import com.astrogreg.gregpacks.network.GregPacksNetwork;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import org.jetbrains.annotations.NotNull;
 
 public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
@@ -18,10 +20,12 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     private static final int C_DARK = 0xFF555555;
     private static final int C_LIGHT = 0xFFFFFFFF;
     private static final int C_SLOT = 0xFF8B8B8B;
+    private static final int C_SLOT_DARK = 0xFF373737;
     private static final int C_TEXT = 0xFF404040;
-    private static final int C_BAR = 0xFF3B3B3B;
+    private static final int C_BAR = 0xFF373737;
     private static final int C_FLUID = 0xFF0099FF;
-    private static final int C_EU = 0xFFFFD700;
+    private static final int C_EU = 0xFFEEE600;
+    private static final int C_TAB_IDLE = 0xFFAFAFAF;
 
     // Layout
     private static final int PAD = 7;
@@ -86,10 +90,11 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     protected void renderBg(GuiGraphics g, float pt, int mx, int my) {
         int x = leftPos, y = topPos;
         g.fill(x, y, x + imageWidth, y + imageHeight, C_BG);
-        bevel(g, x, y, imageWidth, imageHeight);
+        raised(g, x, y, imageWidth, imageHeight);
 
         int divY = y + PAD + 10 + packRows * SS + 4;
-        g.fill(x + PAD, divY, x + imageWidth - PAD, divY + 1, C_DARK);
+        g.fill(x + PAD, divY, x + imageWidth - PAD, divY + 1, C_SLOT_DARK);
+        g.fill(x + PAD, divY + 1, x + imageWidth - PAD, divY + 2, C_LIGHT);
 
         int uStart = menu.getPackSlots(), uEnd = uStart + menu.getMaxUpgrades();
         int craftStart = menu.getCraftingGridStart();
@@ -111,26 +116,28 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     }
 
     private void renderTab(GuiGraphics g, int mx, int my) {
-        int tx = leftPos + TAB_OFF;
+        renderTabButton(g, leftPos + TAB_OFF, "Upgrades " + (upOpen ? "▼" : "▶"), upOpen);
+    }
+
+    private void renderTabButton(GuiGraphics g, int tx, String label, boolean open) {
         int ty = topPos - TAB_H;
-        int bg = upOpen ? C_BG : 0xFFBBBBBB;
+        int bg = open ? C_BG : C_TAB_IDLE;
 
-        g.fill(tx, ty, tx + TAB_W, ty + TAB_H, bg);
-        g.fill(tx, ty, tx + TAB_W, ty + 1, C_DARK);
-        g.fill(tx, ty, tx + 1, ty + TAB_H, C_DARK);
-        g.fill(tx + TAB_W - 1, ty, tx + TAB_W, ty + TAB_H, C_LIGHT);
-        g.fill(tx + 1, ty + TAB_H - 1, tx + TAB_W - 1, ty + TAB_H, C_BG);
+        g.fill(tx, ty, tx + TAB_W, ty + TAB_H + (open ? 1 : 0), bg);
+        g.fill(tx, ty, tx + TAB_W, ty + 1, C_LIGHT);
+        g.fill(tx, ty, tx + 1, ty + TAB_H, C_LIGHT);
+        g.fill(tx + TAB_W - 1, ty, tx + TAB_W, ty + TAB_H, C_DARK);
+        if (!open) g.fill(tx + 1, ty + TAB_H - 1, tx + TAB_W - 1, ty + TAB_H, C_DARK);
 
-        String lbl = "Upgrades " + (upOpen ? "▼" : "▶");
-        g.drawString(font, lbl,
-                tx + (TAB_W - font.width(lbl)) / 2,
+        g.drawString(font, label,
+                tx + (TAB_W - font.width(label)) / 2,
                 ty + (TAB_H - 7) / 2,
                 C_TEXT, false);
     }
 
     private void renderPopup(GuiGraphics g) {
         g.fill(popX, popY, popX + popW, popY + popH, C_BG);
-        bevel(g, popX, popY, popW, popH);
+        raised(g, popX, popY, popW, popH);
 
         int uStart = menu.getPackSlots(), uEnd = uStart + menu.getMaxUpgrades();
         for (int i = uStart; i < uEnd; i++) {
@@ -148,7 +155,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         int pw = popW, ph = 44;
 
         g.fill(px, py, px + pw, py + ph, C_BG);
-        bevel(g, px, py, pw, ph);
+        raised(g, px, py, pw, ph);
 
         g.drawString(font, "Speed: " + menu.getJetpackSpeed(), px + UP_PAD, py + 6, C_TEXT, false);
         renderSmallButton(g, px + pw - UP_PAD - 22, py + 4, "-", 0);
@@ -164,40 +171,21 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         int bg = pressed ? C_DARK : C_BG;
         int textColor = C_TEXT;
         g.fill(x, y, x + 10, y + 10, bg);
-        if (!pressed) bevel(g, x, y, 10, 10);
-        else {
-            g.fill(x, y, x + 10, y + 1, C_LIGHT);
-            g.fill(x, y, x + 1, y + 10, C_LIGHT);
-            g.fill(x, y + 9, x + 10, y + 10, C_DARK);
-            g.fill(x + 9, y, x + 10, y + 10, C_DARK);
-        }
-        g.drawString(font, label, x + (label.equals("+") ? 2 : 3), y + 1, textColor, false);
+        if (!pressed) raised(g, x, y, 10, 10);
+        else sunken(g, x, y, 10, 10);
+        g.drawString(font, label, x + (label.equals("+") ? 2 : 3), y + (pressed ? 2 : 1), textColor, false);
     }
 
     // Bars/Crafting tab
     private void renderCraftTab(GuiGraphics g, int mx, int my) {
-        int tx = leftPos + TAB2_OFF;
-        int ty = topPos - TAB_H;
-        int bg = craftOpen ? C_BG : 0xFFBBBBBB;
-
-        g.fill(tx, ty, tx + TAB_W, ty + TAB_H, bg);
-        g.fill(tx, ty, tx + TAB_W, ty + 1, C_DARK);
-        g.fill(tx, ty, tx + 1, ty + TAB_H, C_DARK);
-        g.fill(tx + TAB_W - 1, ty, tx + TAB_W, ty + TAB_H, C_LIGHT);
-        g.fill(tx + 1, ty + TAB_H - 1, tx + TAB_W - 1, ty + TAB_H, C_BG);
-
-        String lbl = "Crafting " + (craftOpen ? "▼" : "▶");
-        g.drawString(font, lbl,
-                tx + (TAB_W - font.width(lbl)) / 2,
-                ty + (TAB_H - 7) / 2,
-                C_TEXT, false);
+        renderTabButton(g, leftPos + TAB2_OFF, "Crafting " + (craftOpen ? "▼" : "▶"), craftOpen);
     }
 
     private void renderCraftPopup(GuiGraphics g) {
         int pw = UP_PAD + 3 * SS + ARROW_GAP + SS + UP_PAD;
         int ph = UP_PAD + 3 * SS + UP_PAD;
         g.fill(craftPopX, craftPopY, craftPopX + pw, craftPopY + ph, C_BG);
-        bevel(g, craftPopX, craftPopY, pw, ph);
+        raised(g, craftPopX, craftPopY, pw, ph);
 
         int gridStart = menu.getCraftingGridStart();
         if (gridStart >= 0) {
@@ -230,17 +218,15 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         if (amt > 0 && cap > 0) {
             int fh = (int) ((float) amt / cap * (bh - 2));
             Fluid fl = menu.getSyncedFluid();
-            int fc = fl != null ? IClientFluidTypeExtensions.of(fl.getFluidType()).getTintColor() | 0xFF000000 :
-                    C_FLUID;
-            g.fill(bx1 + 1, by + bh - 1 - fh, bx1 + BAR_W - 1, by + bh - 1, fc);
+            renderFluidFill(g, bx1 + 1, by + bh - 1 - fh, BAR_W - 2, fh, fl);
         }
         if (mx >= bx1 && mx < bx1 + BAR_W && my >= by && my < by + bh) {
             Fluid fl = menu.getSyncedFluid();
             String nm = fl != null ? fl.getFluidType().getDescription().getString() : "Empty";
             g.renderTooltip(font, java.util.List.of(
-                    Component.literal("§bFluid: " + nm),
-                    Component.literal(amt + " / " + cap + " mB"),
-                    Component.literal("§7Left-click to fill, Right-click to drain")),
+                            Component.literal("§bFluid: " + nm),
+                            Component.literal(amt + " / " + cap + " mB"),
+                            Component.literal("§7Left-click to fill, Right-click to drain")),
                     java.util.Optional.empty(), mx, my);
         }
 
@@ -253,8 +239,8 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         }
         if (mx >= bx2 && mx < bx2 + BAR_W && my >= by && my < by + bh) {
             g.renderTooltip(font, java.util.List.of(
-                    Component.literal("§6Energy (EU)"),
-                    Component.literal(eu + " / " + euMax + " EU")),
+                            Component.literal("§6Energy (EU)"),
+                            Component.literal(eu + " / " + euMax + " EU")),
                     java.util.Optional.empty(), mx, my);
         }
     }
@@ -427,19 +413,28 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         menu.getHideableSlot(i).show();
     }
 
-    private void bevel(GuiGraphics g, int x, int y, int w, int h) {
-        g.fill(x, y, x + w, y + 1, C_DARK);
-        g.fill(x, y, x + 1, y + h, C_DARK);
+    private void raised(GuiGraphics g, int x, int y, int w, int h) {
+        g.fill(x, y, x + w, y + 1, C_LIGHT);
+        g.fill(x, y, x + 1, y + h, C_LIGHT);
+        g.fill(x, y + h - 1, x + w, y + h, C_DARK);
+        g.fill(x + w - 1, y, x + w, y + h, C_DARK);
+    }
+
+    private void sunken(GuiGraphics g, int x, int y, int w, int h) {
+        g.fill(x, y, x + w, y + 1, C_SLOT_DARK);
+        g.fill(x, y, x + 1, y + h, C_SLOT_DARK);
         g.fill(x, y + h - 1, x + w, y + h, C_LIGHT);
         g.fill(x + w - 1, y, x + w, y + h, C_LIGHT);
     }
 
     private void slotInset(GuiGraphics g, int x, int y) {
-        g.fill(x, y, x + SS, y + 1, C_DARK);
-        g.fill(x, y, x + 1, y + SS, C_DARK);
+        g.fill(x, y, x + SS, y + SS, C_SLOT);
+        g.fill(x, y, x + SS, y + 1, C_SLOT_DARK);
+        g.fill(x, y, x + 1, y + SS, C_SLOT_DARK);
         g.fill(x, y + SS - 1, x + SS, y + SS, C_LIGHT);
         g.fill(x + SS - 1, y, x + SS, y + SS, C_LIGHT);
-        g.fill(x + 1, y + 1, x + SS - 1, y + SS - 1, C_SLOT);
+        g.fill(x + SS - 1, y, x + SS, y + 1, C_SLOT);
+        g.fill(x, y + SS - 1, x + 1, y + SS, C_SLOT);
     }
 
     private void drawArrowShape(GuiGraphics g, int x, int cy, int color) {
@@ -451,6 +446,32 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
 
     private void bar(GuiGraphics g, int x, int y, int w, int h) {
         g.fill(x, y, x + w, y + h, C_BAR);
-        bevel(g, x, y, w, h);
+        sunken(g, x, y, w, h);
+    }
+
+    private void renderFluidFill(GuiGraphics g, int x, int top, int w, int fillH, Fluid fl) {
+        if (fillH <= 0) return;
+        if (fl == null) {
+            g.fill(x, top, x + w, top + fillH, C_FLUID);
+            return;
+        }
+
+        IClientFluidTypeExtensions ext = IClientFluidTypeExtensions.of(fl.getFluidType());
+        TextureAtlasSprite sprite = Minecraft.getInstance()
+                .getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
+                .apply(ext.getStillTexture());
+        int tint = ext.getTintColor();
+        float r = ((tint >> 16) & 0xFF) / 255f;
+        float gn = ((tint >> 8) & 0xFF) / 255f;
+        float b = (tint & 0xFF) / 255f;
+
+        int bottom = top + fillH;
+        g.enableScissor(x, top, x + w, bottom);
+        g.setColor(r, gn, b, 1f);
+        for (int yy = bottom - 16; yy > top - 16; yy -= 16) {
+            g.blit(x, yy, 0, w, 16, sprite);
+        }
+        g.setColor(1f, 1f, 1f, 1f);
+        g.disableScissor();
     }
 }
