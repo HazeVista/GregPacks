@@ -47,6 +47,8 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     private static final int UP_COLS = 2;
     private static final int UP_PAD = 6;
     private static final int ARROW_GAP = 24;
+    private static final int JETPACK_PANEL_H = 44;
+    private static final int POPUP_GAP = 4;
 
     // State
     private boolean upOpen = false;
@@ -153,11 +155,13 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         if (menu.hasJetpack2()) {
             renderJetpackPanel(g);
         }
+
+        renderTHEHover(g, uStart, uEnd);
     }
 
     private void renderJetpackPanel(GuiGraphics g) {
-        int px = popX, py = popY + popH + 4;
-        int pw = popW, ph = 44;
+        int px = popX, py = popY + popH + POPUP_GAP;
+        int pw = popW, ph = JETPACK_PANEL_H;
 
         g.fill(px, py, px + pw, py + ph, C_BG);
         raised(g, px, py, pw, ph);
@@ -209,6 +213,15 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         if (rs != null && rs.isVisible()) {
             slotInset(g, leftPos + rs.x - 1, topPos + rs.y - 1);
         }
+
+        if (gridStart >= 0) renderTHEHover(g, gridStart, gridStart + 10);
+    }
+
+    private void renderTHEHover(GuiGraphics g, int startIndex, int endIndex) {
+        if (hoveredSlot == null || !hoveredSlot.isActive()) return;
+        if (hoveredSlot.index >= startIndex && hoveredSlot.index < endIndex) {
+            renderSlotHighlight(g, leftPos + hoveredSlot.x, topPos + hoveredSlot.y, 0);
+        }
     }
 
     private void renderBars(GuiGraphics g, int mx, int my) {
@@ -258,8 +271,12 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
             int tx = leftPos + TAB_OFF;
             if (mx >= tx && mx < tx + TAB_W && my >= ty && my < ty + TAB_H) {
                 upOpen = !upOpen;
-                if (upOpen) openPopup();
-                else hideUpSlots();
+                if (upOpen) {
+                    openPopup();
+                } else {
+                    hideUpSlots();
+                    if (craftOpen) openCraftPopup();
+                }
                 return true;
             }
 
@@ -322,8 +339,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         if (mx >= bx1 && mx <= bx2 && my >= guiTop && my < guiTop + imageHeight) return false;
 
         if (upOpen) {
-            int jetpackPanelH = menu.hasJetpack2() ? 44 + 4 : 0;
-            if (mx >= popX && mx < popX + popW && my >= popY && my < popY + popH + jetpackPanelH) return false;
+            if (mx >= popX && mx < popX + popW && my >= popY && my < upgradesStackBottom()) return false;
         }
 
         if (craftOpen) {
@@ -357,8 +373,8 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         popH = UP_PAD + rows * SLOT_S + UP_PAD;
         popY = topPos;
 
-        int leftCandidate = leftPos - popW - 4;
-        popX = leftCandidate >= 2 ? leftCandidate : leftPos + imageWidth + 4;
+        int leftCandidate = leftPos - popW - POPUP_GAP;
+        popX = leftCandidate >= 2 ? leftCandidate : leftPos + imageWidth + POPUP_GAP;
 
         for (int i = uStart; i < uEnd; i++) {
             int idx = i - uStart;
@@ -367,6 +383,12 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
                     popY - topPos + UP_PAD + (idx / UP_COLS) * SLOT_S);
             menu.getHideableSlot(i).show();
         }
+
+        if (craftOpen) openCraftPopup();
+    }
+
+    private int upgradesStackBottom() {
+        return popY + popH + (menu.hasJetpack2() ? POPUP_GAP + JETPACK_PANEL_H : 0);
     }
 
     private void hideUpSlots() {
@@ -379,9 +401,16 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
 
         int cpw = UP_PAD + 3 * SLOT_S + ARROW_GAP + SLOT_S + UP_PAD;
         int cph = UP_PAD + 3 * SLOT_S + UP_PAD;
-        craftPopY = topPos + Math.max(0, (imageHeight - cph) / 2);
-        int leftCandidate = leftPos - cpw - 8;
-        craftPopX = leftCandidate >= 2 ? leftCandidate : leftPos + imageWidth + 8;
+        int leftCandidate = leftPos - cpw - POPUP_GAP;
+        boolean craftLeft = leftCandidate >= 2;
+        craftPopX = craftLeft ? leftCandidate : leftPos + imageWidth + POPUP_GAP;
+
+        craftPopY = topPos;
+        if (upOpen && (popX < leftPos) == craftLeft) {
+            craftPopY = upgradesStackBottom() + POPUP_GAP;
+            int maxY = height - cph - 2;
+            if (craftPopY > maxY) craftPopY = Math.max(topPos, maxY);
+        }
 
         int gridStart = menu.getCraftingGridStart();
         for (int i = 0; i < 9; i++) {

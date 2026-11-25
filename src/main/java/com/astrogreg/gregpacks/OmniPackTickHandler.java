@@ -253,7 +253,8 @@ public class OmniPackTickHandler {
             setStoredEU(packStack, storedEU - baseCost, effects.totalEnergyStorage);
         } else if (sneaking && !jumping) {
             // Down
-            newY = Math.max(vel.y - 0.08, -0.3);
+            double accel = thrustY * (vel.y > -0.3 ? 2.5 : 1.0);
+            newY = Math.max(vel.y - accel, -capY);
         } else {
             long hoverCost = Math.max(1, baseCost / 4);
             if (storedEU < hoverCost) return;

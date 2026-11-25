@@ -11,7 +11,7 @@ import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 /**
  * IEnergyStorage implementation for OmniPack ItemStacks.
  *
- * Capacity is read live from installed upgrade modules so it always reflects
+ * Capacity is read from installed upgrade modules so it always reflects
  * the current state of the pack. EU is stored in the item NBT under StoredEU
  * via {@link OmniPackTickHandler}.
  */
@@ -30,7 +30,6 @@ public class OmniPackEnergyHandler implements IEnergyStorage {
     public int getMaxEnergyStored() {
         OmniPackInventory upgradeInv = OmniPackInventory.fromUpgradeItem(container, tier.defaultMaxUpgrades);
         UpgradeEffects effects = new UpgradeEffects(tier, upgradeInv);
-        // Clamp to Integer.MAX_VALUE — IEnergyStorage uses int.
         return (int) Math.min(effects.totalEnergyStorage, Integer.MAX_VALUE);
     }
 
@@ -73,7 +72,6 @@ public class OmniPackEnergyHandler implements IEnergyStorage {
         return (int) drained;
     }
 
-    // Flags
     @Override
     public boolean canReceive() {
         return true;
