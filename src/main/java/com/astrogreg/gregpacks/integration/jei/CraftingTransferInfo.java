@@ -1,13 +1,14 @@
 package com.astrogreg.gregpacks.integration.jei;
 
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+
 import com.astrogreg.gregpacks.inventory.GregPacksMenus;
 import com.astrogreg.gregpacks.inventory.OmniPackMenu;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.transfer.IRecipeTransferInfo;
-import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.crafting.CraftingRecipe;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,10 +1,11 @@
 package com.astrogreg.gregpacks.integration.jei;
 
+import net.minecraft.resources.ResourceLocation;
+
 import com.astrogreg.gregpacks.GregPacks;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
-import net.minecraft.resources.ResourceLocation;
 
 @JeiPlugin
 public class GregPacksJeiPlugin implements IModPlugin {

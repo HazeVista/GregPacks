@@ -1,8 +1,5 @@
 package com.astrogreg.gregpacks.inventory;
 
-import com.astrogreg.gregpacks.network.CPacketFluidInteract;
-import com.astrogreg.gregpacks.network.CPacketJetpackConfig;
-import com.astrogreg.gregpacks.network.GregPacksNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -12,6 +9,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
+
+import com.astrogreg.gregpacks.network.CPacketFluidInteract;
+import com.astrogreg.gregpacks.network.CPacketJetpackConfig;
+import com.astrogreg.gregpacks.network.GregPacksNetwork;
 import org.jetbrains.annotations.NotNull;
 
 public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
@@ -242,9 +243,9 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
             Fluid fl = menu.getSyncedFluid();
             String nm = fl != null ? fl.getFluidType().getDescription().getString() : "Empty";
             g.renderTooltip(font, java.util.List.of(
-                            Component.literal("§bFluid: " + nm),
-                            Component.literal(amt + " / " + cap + " mB"),
-                            Component.literal("§7Left-click to fill, Right-click to drain")),
+                    Component.literal("§bFluid: " + nm),
+                    Component.literal(amt + " / " + cap + " mB"),
+                    Component.literal("§7Left-click to fill, Right-click to drain")),
                     java.util.Optional.empty(), mx, my);
         }
 
@@ -257,8 +258,8 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         }
         if (mx >= bx2 && mx < bx2 + BAR_W && my >= by && my < by + bh) {
             g.renderTooltip(font, java.util.List.of(
-                            Component.literal("§6Energy (EU)"),
-                            Component.literal(eu + " / " + euMax + " EU")),
+                    Component.literal("§6Energy (EU)"),
+                    Component.literal(eu + " / " + euMax + " EU")),
                     java.util.Optional.empty(), mx, my);
         }
     }

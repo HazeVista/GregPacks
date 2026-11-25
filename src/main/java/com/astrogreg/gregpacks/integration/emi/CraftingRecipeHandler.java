@@ -1,10 +1,11 @@
 package com.astrogreg.gregpacks.integration.emi;
 
+import net.minecraft.world.inventory.Slot;
+
 import com.astrogreg.gregpacks.inventory.OmniPackMenu;
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.VanillaEmiRecipeCategories;
 import dev.emi.emi.api.recipe.handler.StandardRecipeHandler;
-import net.minecraft.world.inventory.Slot;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -105,9 +105,8 @@ public class OmniPackTickHandler {
         // now always active if pack has EU stored
         if (getStoredEU(activeStack) > 0) {
             OmniPackMenu openMenu = null;
-            if (player.containerMenu instanceof OmniPackMenu opm
-                    && opm.getSourceBlockEntity() == null
-                    && opm.getActiveStack() == activeStack) {
+            if (player.containerMenu instanceof OmniPackMenu opm && opm.getSourceBlockEntity() == null &&
+                    opm.getActiveStack() == activeStack) {
                 openMenu = opm;
             }
             applyCharging(activeStack, effects, openMenu);
@@ -146,9 +145,8 @@ public class OmniPackTickHandler {
         long available = getStoredEU(packStack);
         if (available <= 0) return;
 
-        OmniPackInventory packInv = openMenu != null
-                ? openMenu.getPackInventory()
-                : OmniPackInventory.fromItem(packStack, effects.totalSlots);
+        OmniPackInventory packInv = openMenu != null ? openMenu.getPackInventory() :
+                OmniPackInventory.fromItem(packStack, effects.totalSlots);
 
         boolean dirty = false;
         for (int i = 0; i < packInv.getContainerSize(); i++) {
