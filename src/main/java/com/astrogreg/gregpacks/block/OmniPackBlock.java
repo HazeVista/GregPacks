@@ -139,17 +139,6 @@ public class OmniPackBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos,
-                         BlockState newState, boolean isMoving) {
-        if (!state.is(newState.getBlock())) {
-            if (level.getBlockEntity(pos) instanceof OmniPackBlockEntity be) {
-                be.setPickedUp(be.isPickedUp());
-            }
-        }
-        super.onRemove(state, level, pos, newState, isMoving);
-    }
-
-    @Override
     public boolean dropFromExplosion(net.minecraft.world.level.Explosion explosion) {
         return true;
     }

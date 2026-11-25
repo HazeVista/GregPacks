@@ -15,7 +15,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -280,11 +279,6 @@ public class OmniPackBlockEntity extends BlockEntity implements MenuProvider {
         fluidCap.invalidate();
         gtEnergyCap.invalidate();
         forgeEnergyCap.invalidate();
-    }
-
-    @Override
-    public AABB getRenderBoundingBox() {
-        return new AABB(getBlockPos()).inflate(1.0);
     }
 
     public FluidStack getFluid() {
