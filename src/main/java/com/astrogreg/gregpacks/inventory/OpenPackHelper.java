@@ -14,12 +14,13 @@ import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Central helper for opening the OmniPack GUI from any context.
- *
- * Buffer layout sent to client (must match OmniPackMenu client constructor):
- * [0] short - real pack slot count (base + upgrade bonuses)
- * [1] byte - upgrade slot count (= tier.defaultMaxUpgrades)
- * [2] byte - tier ordinal
+ * helper for opening the OmniPack GUI from any context
+ * buffer layout sent to client (must match OmniPackMenu client constructor):
+ * [0] short   - real pack slot count (base + upgrade bonuses)
+ * [1] byte    - upgrade slot count (= tier.defaultMaxUpgrades)
+ * [2] byte    - tier ordinal
+ * [3] boolean - crafting module installed
+ * [4] int     - inventory slot index of the open pack
  */
 public class OpenPackHelper {
 
@@ -50,6 +51,7 @@ public class OpenPackHelper {
             buf.writeByte(tier.defaultMaxUpgrades); // upgrade slot count
             buf.writeByte(tier.ordinal());          // tier ordinal
             buf.writeBoolean(effects.hasCrafting);  // crafting module installed
+            buf.writeInt(slotIndex);                // pack's inventory slot (lets the client lock it too)
         });
     }
 

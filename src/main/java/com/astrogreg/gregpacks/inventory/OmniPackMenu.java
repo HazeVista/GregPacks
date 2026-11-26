@@ -1,6 +1,5 @@
 package com.astrogreg.gregpacks.inventory;
 
-import com.astrogreg.gregpacks.util.PackTags;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -8,6 +7,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.SimpleContainerData;
@@ -31,6 +31,7 @@ import com.astrogreg.gregpacks.item.UpgradeType;
 import com.astrogreg.gregpacks.registry.GregPacksMenus;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import com.astrogreg.gregpacks.util.JetpackConfigHelper;
+import com.astrogreg.gregpacks.util.PackTags;
 
 import javax.annotation.Nullable;
 
@@ -89,13 +90,15 @@ public class OmniPackMenu extends AbstractContainerMenu {
         syncFluidData();
     }
 
-    // Client-side constructor
+    // NOTE: the buffer layout must match what OpenPackHelper write
+    // the pack's inventory slot index is the last value written
     public OmniPackMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buf) {
         this(containerId, playerInventory,
                 new OmniPackInventory(buf.readShort()),
                 new OmniPackInventory(buf.readByte()),
                 OmniPackTier.values()[buf.readByte()],
                 buf.readBoolean());
+        this.packSlotIndex = buf.readInt();
     }
 
     private OmniPackMenu(int containerId, Inventory playerInventory,
@@ -294,12 +297,33 @@ public class OmniPackMenu extends AbstractContainerMenu {
         return total;
     }
 
+
+     // Creates a player-inventory slot that is locked while it holds the pack that this menu was opened from.
+    private HideableSlot playerSlot(Inventory inv, int invIndex, int x, int y) {
+        return new HideableSlot(inv, invIndex, x, y) {
+
+            private boolean isLockedPack() {
+                return invIndex == OmniPackMenu.this.packSlotIndex;
+            }
+
+            @Override
+            public boolean mayPickup(Player player) {
+                return !isLockedPack() && super.mayPickup(player);
+            }
+
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return !isLockedPack() && super.mayPlace(stack);
+            }
+        };
+    }
+
     private void addPlayerSlots(Inventory playerInventory) {
         int packRows = (int) Math.ceil(packSlots / (double) COLS);
         int playerInvY = PACK_START_Y + packRows * SLOT_SIZE + 8;
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new HideableSlot(playerInventory,
+                addSlot(playerSlot(playerInventory,
                         col + row * 9 + 9,
                         PACK_START_X + col * SLOT_SIZE,
                         playerInvY + row * SLOT_SIZE));
@@ -307,9 +331,22 @@ public class OmniPackMenu extends AbstractContainerMenu {
         }
         int hotbarY = playerInvY + 3 * SLOT_SIZE + 4;
         for (int col = 0; col < 9; col++) {
-            addSlot(new HideableSlot(playerInventory, col,
+            addSlot(playerSlot(playerInventory, col,
                     PACK_START_X + col * SLOT_SIZE, hotbarY));
         }
+    }
+
+    /**
+     * Number keys / the offhand key swap the hovered slot with a hotbar slot. The slot-level checks
+     * only look at the hovered slot, so block swaps that would move the open pack out of its hotbar
+     * (or offhand) slot.
+     */
+    @Override
+    public void clicked(int slotId, int button, ClickType clickType, Player player) {
+        if (clickType == ClickType.SWAP && packSlotIndex >= 0 && button == packSlotIndex) {
+            return;
+        }
+        super.clicked(slotId, button, clickType, player);
     }
 
     @Override
