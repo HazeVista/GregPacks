@@ -1,17 +1,8 @@
 package com.astrogreg.gregpacks.block;
 
-import com.astrogreg.gregpacks.OmniPackTickHandler;
-import com.astrogreg.gregpacks.energy.OmniPackGTEnergyContainer;
-import com.astrogreg.gregpacks.fluid.FluidNBTHelper;
-import com.astrogreg.gregpacks.fluid.OmniPackFluidStorage;
-import com.astrogreg.gregpacks.inventory.OmniPackInventory;
-import com.astrogreg.gregpacks.inventory.OmniPackMenu;
-import com.astrogreg.gregpacks.item.OmniPackTier;
-import com.astrogreg.gregpacks.registry.GregPacksBlockEntities;
-import com.astrogreg.gregpacks.registry.GregPacksBlocks;
-import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -32,6 +23,17 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
+
+import com.astrogreg.gregpacks.OmniPackTickHandler;
+import com.astrogreg.gregpacks.energy.OmniPackGTEnergyContainer;
+import com.astrogreg.gregpacks.fluid.FluidNBTHelper;
+import com.astrogreg.gregpacks.fluid.OmniPackFluidStorage;
+import com.astrogreg.gregpacks.inventory.OmniPackInventory;
+import com.astrogreg.gregpacks.inventory.OmniPackMenu;
+import com.astrogreg.gregpacks.item.OmniPackTier;
+import com.astrogreg.gregpacks.registry.GregPacksBlockEntities;
+import com.astrogreg.gregpacks.registry.GregPacksBlocks;
+import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;

@@ -1,26 +1,36 @@
 package com.astrogreg.gregpacks.inventory;
 
 import net.minecraft.world.inventory.Slot;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
 import java.lang.reflect.Field;
 
 /**
- * Reflectively writes to Slot.x and Slot.y which are final in 1.20.1.
- * This is the only way to reposition slots at runtime without a Mixin (that's why the lie).
+ * reflectively writes Slot.x / Slot.y
+ * unfortunately final in 1.20.1
+ * uses SRG names for normal launch and falls back to default names in dev environment
  */
 public class SlotAccessor {
 
-    private static final Field FIELD_X;
-    private static final Field FIELD_Y;
+    private static final Field FIELD_X = find("f_40220_", "x");
+    private static final Field FIELD_Y = find("f_40221_", "y");
 
-    static {
+    private static Field find(String srgName, String plainName) {
         try {
-            FIELD_X = Slot.class.getDeclaredField("x");
-            FIELD_Y = Slot.class.getDeclaredField("y");
-            FIELD_X.setAccessible(true);
-            FIELD_Y.setAccessible(true);
+            return ObfuscationReflectionHelper.findField(Slot.class, srgName);
+        } catch (Exception ignored) {
+        }
+        try {
+            Field f = Slot.class.getDeclaredField(plainName);
+            f.setAccessible(true);
+            return f;
         } catch (NoSuchFieldException e) {
-            throw new RuntimeException("Could not find Slot.x or Slot.y fields", e);
+            StringBuilder sb = new StringBuilder();
+            for (Field f : Slot.class.getDeclaredFields()) {
+                sb.append(f.getType().getSimpleName()).append(' ').append(f.getName()).append(", ");
+            }
+            throw new RuntimeException("Could not find Slot." + plainName + " (" + srgName
+                    + "). Declared fields: " + sb, e);
         }
     }
 

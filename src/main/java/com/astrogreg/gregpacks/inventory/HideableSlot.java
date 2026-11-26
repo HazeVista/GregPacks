@@ -1,14 +1,14 @@
 package com.astrogreg.gregpacks.inventory;
 
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * A slot that can be shown or hidden by tracking its own position.
- * Since Slot.x and Slot.y are final, we use a Mixin (SlotMixin) to
- * remove the final modifier so we can write to them at runtime. (this is a lie)
- */
+// we use a mixin (SlotMixin) to remove the modifier so we can write to them at runtime
 public class HideableSlot extends Slot {
 
     private static final int OFFSCREEN = -10000;
@@ -48,8 +48,14 @@ public class HideableSlot extends Slot {
         return visible;
     }
 
+    private static final TagKey<Item> CURIOS_BACK =
+            TagKey.create(Registries.ITEM, new ResourceLocation("curios", "back"));
+
     @Override
     public boolean mayPlace(ItemStack stack) {
+        if (stack.is(CURIOS_BACK)) {
+            return false;
+        }
         return super.mayPlace(stack);
     }
 }
