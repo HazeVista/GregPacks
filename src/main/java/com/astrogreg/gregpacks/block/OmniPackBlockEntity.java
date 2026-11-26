@@ -1,8 +1,17 @@
 package com.astrogreg.gregpacks.block;
 
+import com.astrogreg.gregpacks.OmniPackTickHandler;
+import com.astrogreg.gregpacks.energy.OmniPackGTEnergyContainer;
+import com.astrogreg.gregpacks.fluid.FluidNBTHelper;
+import com.astrogreg.gregpacks.fluid.OmniPackFluidStorage;
+import com.astrogreg.gregpacks.inventory.OmniPackInventory;
+import com.astrogreg.gregpacks.inventory.OmniPackMenu;
+import com.astrogreg.gregpacks.item.OmniPackTier;
+import com.astrogreg.gregpacks.registry.GregPacksBlockEntities;
+import com.astrogreg.gregpacks.registry.GregPacksBlocks;
+import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -23,16 +32,6 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
-
-import com.astrogreg.gregpacks.OmniPackTickHandler;
-import com.astrogreg.gregpacks.energy.OmniPackGTEnergyContainer;
-import com.astrogreg.gregpacks.fluid.FluidNBTHelper;
-import com.astrogreg.gregpacks.inventory.OmniPackInventory;
-import com.astrogreg.gregpacks.inventory.OmniPackMenu;
-import com.astrogreg.gregpacks.item.OmniPackTier;
-import com.astrogreg.gregpacks.registry.GregPacksBlockEntities;
-import com.astrogreg.gregpacks.registry.GregPacksBlocks;
-import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -70,64 +69,22 @@ public class OmniPackBlockEntity extends BlockEntity implements MenuProvider {
 
         this.itemCap = LazyOptional.of(() -> new InvWrapper(packInventory));
 
-        this.fluidCap = LazyOptional.of(() -> new IFluidHandler() {
+        this.fluidCap = LazyOptional.of(() -> new OmniPackFluidStorage() {
 
             @Override
-            public int getTanks() {
-                return 1;
+            protected @NotNull FluidStack readFluid() {
+                return fluid.isEmpty() ? FluidStack.EMPTY : fluid.copy();
             }
 
             @Override
-            public @NotNull FluidStack getFluidInTank(int tank) {
-                return fluid != null ? fluid : FluidStack.EMPTY;
+            protected void writeFluid(@NotNull FluidStack stack) {
+                fluid = stack.isEmpty() ? FluidStack.EMPTY : stack;
+                setChanged();
             }
 
             @Override
-            public int getTankCapacity(int tank) {
-                return (int) new UpgradeEffects(tier, upgradeInventory).totalFluidStorage;
-            }
-
-            @Override
-            public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
-                return fluid.isEmpty() || fluid.isFluidEqual(stack);
-            }
-
-            @Override
-            public int fill(FluidStack resource, FluidAction action) {
-                if (resource.isEmpty()) return 0;
-                if (!fluid.isEmpty() && !fluid.isFluidEqual(resource)) return 0;
-                int space = getTankCapacity(0) - fluid.getAmount();
-                int filled = Math.min(space, resource.getAmount());
-                if (filled <= 0) return 0;
-                if (action.execute()) {
-                    if (fluid.isEmpty()) {
-                        fluid = new FluidStack(resource, filled);
-                    } else {
-                        fluid.setAmount(fluid.getAmount() + filled);
-                    }
-                    setChanged();
-                }
-                return filled;
-            }
-
-            @Override
-            public @NotNull FluidStack drain(FluidStack resource, FluidAction action) {
-                if (resource.isEmpty() || fluid.isEmpty() || !resource.isFluidEqual(fluid))
-                    return FluidStack.EMPTY;
-                return drain(resource.getAmount(), action);
-            }
-
-            @Override
-            public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
-                if (fluid.isEmpty() || maxDrain <= 0) return FluidStack.EMPTY;
-                int drained = Math.min(fluid.getAmount(), maxDrain);
-                FluidStack result = new FluidStack(fluid, drained);
-                if (action.execute()) {
-                    fluid.setAmount(fluid.getAmount() - drained);
-                    if (fluid.getAmount() <= 0) fluid = FluidStack.EMPTY;
-                    setChanged();
-                }
-                return result;
+            protected int capacity() {
+                return Math.max(1000, new UpgradeEffects(tier, upgradeInventory).totalFluidStorage);
             }
         });
 
