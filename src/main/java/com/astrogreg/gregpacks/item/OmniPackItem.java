@@ -9,7 +9,9 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 
 import com.astrogreg.gregpacks.OmniPackTickHandler;
+import com.astrogreg.gregpacks.inventory.OmniPackInventory;
 import com.astrogreg.gregpacks.inventory.OpenPackHelper;
+import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
@@ -42,8 +44,8 @@ public class OmniPackItem extends Item implements ICurioItem {
 
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(
-                                                           @NotNull Level level, @NotNull Player player,
-                                                           @NotNull InteractionHand hand) {
+            @NotNull Level level, @NotNull Player player,
+            @NotNull InteractionHand hand) {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
             ItemStack stack = player.getItemInHand(hand);
             int slotIndex = OpenPackHelper.findSlot(player, stack);
@@ -55,17 +57,42 @@ public class OmniPackItem extends Item implements ICurioItem {
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level,
                                 @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag isAdvanced) {
-        tooltipComponents.add(Component.translatable("item.gregpacks.omnipack.tooltip.slots", tier.defaultSlots));
+
+        com.mojang.logging.LogUtils.getLogger().info("OmniPack tooltip called for {}", stack);
+        
+        // read the upgrades saved on the stack and show the real (upgrade-adjusted) values
+        OmniPackInventory upgradeInv = OmniPackInventory.fromUpgradeItem(stack, tier.defaultMaxUpgrades);
+        UpgradeEffects effects = new UpgradeEffects(tier, upgradeInv);
+
+        int installed = 0;
+        for (int i = 0; i < upgradeInv.getContainerSize(); i++) {
+            if (!upgradeInv.getItem(i).isEmpty()) installed++;
+        }
+
+        tooltipComponents.add(Component.translatable("item.gregpacks.omnipack.tooltip.slots", effects.totalSlots));
         tooltipComponents
-                .add(Component.translatable("item.gregpacks.omnipack.tooltip.fluid", tier.defaultFluidStorage));
+                .add(Component.translatable("item.gregpacks.omnipack.tooltip.fluid", effects.totalFluidStorage));
         tooltipComponents
-                .add(Component.translatable("item.gregpacks.omnipack.tooltip.energy", tier.defaultEnergyStorage));
+                .add(Component.translatable("item.gregpacks.omnipack.tooltip.energy", effects.totalEnergyStorage));
         tooltipComponents
                 .add(Component.translatable("item.gregpacks.omnipack.tooltip.upgrades", tier.defaultMaxUpgrades));
+
         long storedEU = OmniPackTickHandler.getStoredEU(stack);
         if (storedEU > 0) {
-            tooltipComponents.add(Component.literal("§aEU: " + storedEU + " / " + tier.defaultEnergyStorage));
+            tooltipComponents.add(Component.literal("§aEU: " + storedEU + " / " + effects.totalEnergyStorage));
         }
+
+        if (installed > 0) {
+            tooltipComponents.add(Component.literal(
+                    "§bInstalled upgrades (" + installed + "/" + tier.defaultMaxUpgrades + "):"));
+            for (int i = 0; i < upgradeInv.getContainerSize(); i++) {
+                ItemStack upgrade = upgradeInv.getItem(i);
+                if (!upgrade.isEmpty()) {
+                    tooltipComponents.add(Component.literal("§7  - ").append(upgrade.getHoverName()));
+                }
+            }
+        }
+
         tooltipComponents.add(Component.literal("§7Shift-click to equip as chestplate"));
     }
 }

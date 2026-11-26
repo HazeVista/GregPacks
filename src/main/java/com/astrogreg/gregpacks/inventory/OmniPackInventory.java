@@ -6,6 +6,8 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 
+import com.astrogreg.gregpacks.util.PackTags;
+
 public class OmniPackInventory extends SimpleContainer {
 
     private static final String TAG_ITEMS = "Items";
@@ -14,6 +16,15 @@ public class OmniPackInventory extends SimpleContainer {
 
     public OmniPackInventory(int slots) {
         super(slots);
+    }
+
+    /**
+     * Backpacks (curios:back items) can't be inserted into a pack. Covers automation
+     * (hoppers/pipes) that goes through canPlaceItem; GUI clicks are covered by the menu's slots.
+     */
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        return !stack.is(PackTags.CURIOS_BACK) && super.canPlaceItem(slot, stack);
     }
 
     // ItemStack NBT (for item-carried inventory)

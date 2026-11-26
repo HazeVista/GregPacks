@@ -11,10 +11,7 @@ import com.astrogreg.gregpacks.item.OmniPackItem;
 import com.astrogreg.gregpacks.item.OmniPackTier;
 import com.astrogreg.gregpacks.registry.OmniPackBlockItem;
 
-/**
- * Registers the IFluidHandlerItem capability on every OmniPack ItemStack
- * (both the item and the block-item).
- */
+// register IFluidHandlerItem capability on all OmniPack ItemStack
 @Mod.EventBusSubscriber(modid = GregPacks.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class GregPacksCapabilityHandler {
 

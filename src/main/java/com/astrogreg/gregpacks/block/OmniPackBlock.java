@@ -121,6 +121,7 @@ public class OmniPackBlock extends BaseEntityBlock {
                         buf.writeByte(tier.defaultMaxUpgrades);
                         buf.writeByte(tier.ordinal());
                         buf.writeBoolean(effects.hasCrafting);
+                        buf.writeInt(-1);
                     });
         }
         return InteractionResult.SUCCESS;
