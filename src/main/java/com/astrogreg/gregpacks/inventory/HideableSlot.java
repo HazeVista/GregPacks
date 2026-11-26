@@ -53,9 +53,6 @@ public class HideableSlot extends Slot {
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        if (stack.is(CURIOS_BACK)) {
-            return false;
-        }
         return super.mayPlace(stack);
     }
 }

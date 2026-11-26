@@ -1,5 +1,6 @@
 package com.astrogreg.gregpacks.inventory;
 
+import com.astrogreg.gregpacks.util.PackTags;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -123,7 +124,13 @@ public class OmniPackMenu extends AbstractContainerMenu {
             int row = i / COLS;
             addSlot(new HideableSlot(packInventory, i,
                     PACK_START_X + col * SLOT_SIZE,
-                    PACK_START_Y + row * SLOT_SIZE));
+                    PACK_START_Y + row * SLOT_SIZE) {
+
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    return !stack.is(PackTags.CURIOS_BACK) && super.mayPlace(stack);
+                }
+            });
         }
     }
 
