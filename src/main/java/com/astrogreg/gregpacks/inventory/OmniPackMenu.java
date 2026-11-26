@@ -133,6 +133,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
 
     private void addUpgradeSlots() {
         final OmniPackInventory upgradeInvRef = upgradeInventory;
+        upgradeInventory.addListener(c -> onUpgradesChanged());
         for (int i = 0; i < maxUpgrades; i++) {
             final int slotIdx = i;
             addSlot(new HideableSlot(upgradeInventory, i, 0, 0) {
@@ -174,12 +175,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
                             return false;
                     }
                     return true;
-                }
-
-                @Override
-                public void setChanged() {
-                    super.setChanged();
-                    OmniPackMenu.this.onUpgradesChanged();
                 }
             });
         }
@@ -280,12 +275,12 @@ public class OmniPackMenu extends AbstractContainerMenu {
                 if (storedEU > euCap) {
                     OmniPackTickHandler.setStoredEU(packStack, storedEU, euCap);
                 }
+                upgradeInventory.saveUpgradesToItem(packStack);
                 serverPlayer.getInventory().setChanged();
 
                 if ((effects.totalSlots != packSlots || effects.hasCrafting != craftingInstalled)
                         && packSlotIndex >= 0) {
                     packInventory.saveToItem(packStack);
-                    upgradeInventory.saveUpgradesToItem(packStack);
                     serverPlayer.getServer().execute(() ->
                             OpenPackHelper.open(serverPlayer, packStack, tier, packSlotIndex));
                     return;
