@@ -158,14 +158,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
                     if (current.isEmpty() || !(current.getItem() instanceof UpgradeItem upgradeItem))
                         return true;
 
-                    GregPacksConfig.UpgradeConfigs cfg = GregPacksConfig.INSTANCE.ModuleValues;
-
-                    int thisBonus = switch (upgradeItem.getUpgradeType()) {
-                        case ITEM_CAPACITY_I -> cfg.itemModule1Bonus;
-                        case ITEM_CAPACITY_II -> cfg.itemModule2Bonus;
-                        case ITEM_CAPACITY_III -> cfg.itemModule3Bonus;
-                        default -> 0;
-                    };
+                    int thisBonus = itemCapacityBonus(upgradeItem.getUpgradeType());
                     if (thisBonus == 0) return true;
                     int slotsWithout = tier.defaultSlots;
                     for (int j = 0; j < maxUpgrades; j++) {
@@ -173,12 +166,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
                         ItemStack other = upgradeInvRef.getItem(j);
                         if (other.isEmpty() || !(other.getItem() instanceof UpgradeItem otherUpgrade))
                             continue;
-                        slotsWithout += switch (otherUpgrade.getUpgradeType()) {
-                            case ITEM_CAPACITY_I -> cfg.itemModule1Bonus;
-                            case ITEM_CAPACITY_II -> cfg.itemModule2Bonus;
-                            case ITEM_CAPACITY_III -> cfg.itemModule3Bonus;
-                            default -> 0;
-                        };
+                        slotsWithout += itemCapacityBonus(otherUpgrade.getUpgradeType());
                     }
 
                     for (int j = slotsWithout; j < packSlots; j++) {
@@ -204,8 +192,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
         craftingGridStart = slots.size();
 
         for (int i = 0; i < 9; i++) {
-            final int idx = i;
-            addSlot(new HideableSlot(craftingContainer, idx, 0, 0) {
+            addSlot(new HideableSlot(craftingContainer, i, 0, 0) {
 
                 @Override
                 public void setChanged() {
@@ -257,7 +244,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
     public void slotsChanged(Container container) {
         super.slotsChanged(container);
 
-        if (craftingContainer != null && container == (Container) craftingContainer && serverPlayer != null) {
+        if (craftingContainer != null && container == craftingContainer && serverPlayer != null) {
             updateCraftingResult();
         }
 
@@ -267,11 +254,10 @@ public class OmniPackMenu extends AbstractContainerMenu {
         int newSlotCount = computeCurrentSlotCount();
         if (newSlotCount == packSlots) return;
 
-        int slot = packSlotIndex;
-        if (slot < 0) return;
+        if (packSlotIndex < 0) return;
 
         ItemStack packStack = sourceStack != null ? sourceStack :
-                (packSlotIndex >= 0 ? serverPlayer.getInventory().getItem(packSlotIndex) : ItemStack.EMPTY);
+                serverPlayer.getInventory().getItem(packSlotIndex);
         if (packStack.isEmpty()) return;
 
         packInventory.saveToItem(packStack);
@@ -282,19 +268,23 @@ public class OmniPackMenu extends AbstractContainerMenu {
     }
 
     private int computeCurrentSlotCount() {
-        GregPacksConfig.UpgradeConfigs cfg = GregPacksConfig.INSTANCE.ModuleValues;
         int total = tier.defaultSlots;
         for (int i = 0; i < maxUpgrades; i++) {
             ItemStack stack = upgradeInventory.getItem(i);
             if (stack.isEmpty() || !(stack.getItem() instanceof UpgradeItem upgradeItem)) continue;
-            total += switch (upgradeItem.getUpgradeType()) {
-                case ITEM_CAPACITY_I -> cfg.itemModule1Bonus;
-                case ITEM_CAPACITY_II -> cfg.itemModule2Bonus;
-                case ITEM_CAPACITY_III -> cfg.itemModule3Bonus;
-                default -> 0;
-            };
+            total += itemCapacityBonus(upgradeItem.getUpgradeType());
         }
         return total;
+    }
+
+    private static int itemCapacityBonus(UpgradeType type) {
+        GregPacksConfig.UpgradeConfigs cfg = GregPacksConfig.INSTANCE.ModuleValues;
+        return switch (type) {
+            case ITEM_CAPACITY_I -> cfg.itemModule1Bonus;
+            case ITEM_CAPACITY_II -> cfg.itemModule2Bonus;
+            case ITEM_CAPACITY_III -> cfg.itemModule3Bonus;
+            default -> 0;
+        };
     }
 
     private void onUpgradesChanged() {
@@ -389,7 +379,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         Slot slot = slots.get(index);
-        if (slot == null || !slot.hasItem()) return ItemStack.EMPTY;
+        if (!slot.hasItem()) return ItemStack.EMPTY;
 
         ItemStack slotStack = slot.getItem();
         ItemStack result = slotStack.copy();
@@ -509,12 +499,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
         return ItemStack.EMPTY;
     }
 
-    public long getActiveStoredEU() {
-        if (sourceBlockEntity != null) return sourceBlockEntity.getStoredEU();
-        ItemStack stack = getActiveStack();
-        return stack.isEmpty() ? 0L : OmniPackTickHandler.getStoredEU(stack);
-    }
-
     public int getTankCapacity() {
         UpgradeEffects effects = new UpgradeEffects(tier, upgradeInventory);
         return effects.totalFluidStorage;
@@ -586,10 +570,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
         if (craftingContainer != null) craftingContainer.rebind(stack);
     }
 
-    public ItemStack getSourceStack() {
-        return sourceStack;
-    }
-
     public void setSourceBlockEntity(OmniPackBlockEntity be) {
         this.sourceBlockEntity = be;
         if (craftingContainer != null && be != null) {
@@ -650,10 +630,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
 
     public int getCraftingGridStart() {
         return craftingGridStart;
-    }
-
-    public int getCraftingResultSlot() {
-        return craftingResultSlot;
     }
 
     public HideableResultSlot getCraftingResultSlotObj() {
