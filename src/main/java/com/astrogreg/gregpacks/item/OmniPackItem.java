@@ -58,8 +58,6 @@ public class OmniPackItem extends Item implements ICurioItem {
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level,
                                 @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag isAdvanced) {
 
-        com.mojang.logging.LogUtils.getLogger().info("OmniPack tooltip called for {}", stack);
-        
         // read the upgrades saved on the stack and show the real (upgrade-adjusted) values
         OmniPackInventory upgradeInv = OmniPackInventory.fromUpgradeItem(stack, tier.defaultMaxUpgrades);
         UpgradeEffects effects = new UpgradeEffects(tier, upgradeInv);
