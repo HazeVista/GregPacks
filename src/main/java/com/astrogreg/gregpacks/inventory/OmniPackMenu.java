@@ -1,26 +1,5 @@
 package com.astrogreg.gregpacks.inventory;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.Container;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.ResultContainer;
-import net.minecraft.world.inventory.SimpleContainerData;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.registries.ForgeRegistries;
-
 import com.astrogreg.gregpacks.OmniPackTickHandler;
 import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
 import com.astrogreg.gregpacks.config.GregPacksConfig;
@@ -32,6 +11,21 @@ import com.astrogreg.gregpacks.registry.GregPacksMenus;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import com.astrogreg.gregpacks.util.JetpackConfigHelper;
 import com.astrogreg.gregpacks.util.PackTags;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 
@@ -193,6 +187,12 @@ public class OmniPackMenu extends AbstractContainerMenu {
                     }
                     return true;
                 }
+
+                @Override
+                public void setChanged() {
+                    super.setChanged();
+                    OmniPackMenu.this.onUpgradesChanged();
+                }
             });
         }
     }
@@ -297,8 +297,45 @@ public class OmniPackMenu extends AbstractContainerMenu {
         return total;
     }
 
+    private void onUpgradesChanged() {
+        if (serverPlayer == null) return;
 
-     // Creates a player-inventory slot that is locked while it holds the pack that this menu was opened from.
+        UpgradeEffects effects = new UpgradeEffects(tier, upgradeInventory);
+        int fluidCap = Math.max(1000, effects.totalFluidStorage);
+        long euCap = effects.totalEnergyStorage;
+
+        if (sourceBlockEntity != null) {
+            FluidStack fluid = sourceBlockEntity.getFluid();
+            if (!fluid.isEmpty() && fluid.getAmount() > fluidCap) {
+                FluidStack clamped = fluid.copy();
+                clamped.setAmount(fluidCap);
+                sourceBlockEntity.setFluid(clamped);
+            }
+            if (sourceBlockEntity.getStoredEU() > euCap) {
+                sourceBlockEntity.setStoredEUDirect(euCap);
+            }
+        } else {
+            ItemStack packStack = getActiveStack();
+            if (!packStack.isEmpty()) {
+                FluidStack fluid = FluidNBTHelper.getFluid(packStack);
+                if (!fluid.isEmpty() && fluid.getAmount() > fluidCap) {
+                    FluidStack clamped = fluid.copy();
+                    clamped.setAmount(fluidCap);
+                    FluidNBTHelper.setFluid(packStack, clamped);
+                }
+                long storedEU = OmniPackTickHandler.getStoredEU(packStack);
+                if (storedEU > euCap) {
+                    OmniPackTickHandler.setStoredEU(packStack, storedEU, euCap);
+                }
+                serverPlayer.getInventory().setChanged();
+            }
+        }
+
+        broadcastChanges();
+    }
+
+
+    // Creates a player-inventory slot that is locked while it holds the pack that this menu was opened from.
     private HideableSlot playerSlot(Inventory inv, int invIndex, int x, int y) {
         return new HideableSlot(inv, invIndex, x, y) {
 
