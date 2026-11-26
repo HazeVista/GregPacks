@@ -240,43 +240,6 @@ public class OmniPackMenu extends AbstractContainerMenu {
         broadcastChanges();
     }
 
-    @Override
-    public void slotsChanged(Container container) {
-        super.slotsChanged(container);
-
-        if (craftingContainer != null && container == craftingContainer && serverPlayer != null) {
-            updateCraftingResult();
-        }
-
-        if (serverPlayer == null) return;
-        if (container != upgradeInventory) return;
-
-        int newSlotCount = computeCurrentSlotCount();
-        if (newSlotCount == packSlots) return;
-
-        if (packSlotIndex < 0) return;
-
-        ItemStack packStack = sourceStack != null ? sourceStack :
-                serverPlayer.getInventory().getItem(packSlotIndex);
-        if (packStack.isEmpty()) return;
-
-        packInventory.saveToItem(packStack);
-        upgradeInventory.saveUpgradesToItem(packStack);
-        serverPlayer.getInventory().setChanged();
-
-        serverPlayer.getServer().execute(() -> OpenPackHelper.open(serverPlayer, packStack, tier, packSlotIndex));
-    }
-
-    private int computeCurrentSlotCount() {
-        int total = tier.defaultSlots;
-        for (int i = 0; i < maxUpgrades; i++) {
-            ItemStack stack = upgradeInventory.getItem(i);
-            if (stack.isEmpty() || !(stack.getItem() instanceof UpgradeItem upgradeItem)) continue;
-            total += itemCapacityBonus(upgradeItem.getUpgradeType());
-        }
-        return total;
-    }
-
     private static int itemCapacityBonus(UpgradeType type) {
         GregPacksConfig.UpgradeConfigs cfg = GregPacksConfig.INSTANCE.ModuleValues;
         return switch (type) {
@@ -318,6 +281,15 @@ public class OmniPackMenu extends AbstractContainerMenu {
                     OmniPackTickHandler.setStoredEU(packStack, storedEU, euCap);
                 }
                 serverPlayer.getInventory().setChanged();
+
+                if ((effects.totalSlots != packSlots || effects.hasCrafting != craftingInstalled)
+                        && packSlotIndex >= 0) {
+                    packInventory.saveToItem(packStack);
+                    upgradeInventory.saveUpgradesToItem(packStack);
+                    serverPlayer.getServer().execute(() ->
+                            OpenPackHelper.open(serverPlayer, packStack, tier, packSlotIndex));
+                    return;
+                }
             }
         }
 
