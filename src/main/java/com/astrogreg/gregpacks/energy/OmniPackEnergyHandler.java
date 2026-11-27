@@ -3,7 +3,7 @@ package com.astrogreg.gregpacks.energy;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.energy.IEnergyStorage;
 
-import com.astrogreg.gregpacks.OmniPackTickHandler;
+import com.astrogreg.gregpacks.util.OmniPackTickHandler;
 import com.astrogreg.gregpacks.inventory.OmniPackInventory;
 import com.astrogreg.gregpacks.item.OmniPackTier;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;

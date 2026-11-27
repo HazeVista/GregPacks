@@ -1,6 +1,6 @@
 package com.astrogreg.gregpacks.inventory;
 
-import com.astrogreg.gregpacks.OmniPackTickHandler;
+import com.astrogreg.gregpacks.util.OmniPackTickHandler;
 import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
 import com.astrogreg.gregpacks.config.GregPacksConfig;
 import com.astrogreg.gregpacks.fluid.FluidNBTHelper;

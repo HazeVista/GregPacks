@@ -8,7 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 
-import com.astrogreg.gregpacks.OmniPackTickHandler;
+import com.astrogreg.gregpacks.util.OmniPackTickHandler;
 import com.astrogreg.gregpacks.inventory.OmniPackInventory;
 import com.astrogreg.gregpacks.inventory.OpenPackHelper;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;

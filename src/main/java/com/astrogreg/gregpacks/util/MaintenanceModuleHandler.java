@@ -1,5 +1,6 @@
-package com.astrogreg.gregpacks;
+package com.astrogreg.gregpacks.util;
 
+import com.astrogreg.gregpacks.GregPacks;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.machine.IMachineBlockEntity;

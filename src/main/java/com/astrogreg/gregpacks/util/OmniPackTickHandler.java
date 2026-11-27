@@ -1,5 +1,6 @@
-package com.astrogreg.gregpacks;
+package com.astrogreg.gregpacks.util;
 
+import com.astrogreg.gregpacks.GregPacks;
 import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
 import com.astrogreg.gregpacks.config.GregPacksConfig;
 import com.astrogreg.gregpacks.inventory.OmniPackInventory;
@@ -11,7 +12,6 @@ import com.astrogreg.gregpacks.network.GregPacksNetwork;
 import com.astrogreg.gregpacks.network.SPacketJetpackThrust;
 import com.astrogreg.gregpacks.registry.OmniPackBlockItem;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
-import com.astrogreg.gregpacks.util.JetpackConfigHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import net.minecraft.server.level.ServerPlayer;

@@ -1,5 +1,6 @@
 package com.astrogreg.gregpacks.block;
 
+import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -111,7 +112,7 @@ public class OmniPackBlock extends BaseEntityBlock {
         }
 
         if (level.getBlockEntity(pos) instanceof OmniPackBlockEntity be) {
-            com.astrogreg.gregpacks.upgrade.UpgradeEffects effects = new com.astrogreg.gregpacks.upgrade.UpgradeEffects(
+            UpgradeEffects effects = new UpgradeEffects(
                     tier, be.getUpgradeInventory());
             int realSlots = effects.totalSlots;
 

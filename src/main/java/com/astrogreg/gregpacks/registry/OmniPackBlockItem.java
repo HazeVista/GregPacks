@@ -19,7 +19,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
-import com.astrogreg.gregpacks.OmniPackTickHandler;
+import com.astrogreg.gregpacks.util.OmniPackTickHandler;
 import com.astrogreg.gregpacks.block.OmniPackBlock;
 import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
 import com.astrogreg.gregpacks.fluid.FluidNBTHelper;

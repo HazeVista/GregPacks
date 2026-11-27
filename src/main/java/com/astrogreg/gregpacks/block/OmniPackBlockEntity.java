@@ -24,7 +24,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
-import com.astrogreg.gregpacks.OmniPackTickHandler;
+import com.astrogreg.gregpacks.util.OmniPackTickHandler;
 import com.astrogreg.gregpacks.energy.OmniPackGTEnergyContainer;
 import com.astrogreg.gregpacks.fluid.FluidNBTHelper;
 import com.astrogreg.gregpacks.fluid.OmniPackFluidStorage;
