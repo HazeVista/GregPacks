@@ -48,6 +48,11 @@
   "item.gregpacks.magnet_module_2.tooltip": "buıɹǝʇןıɟ puɐ ǝbuɐɹ ǝןqɐɹnbıɟuoɔ ɥʇıʍ ǝbuɐɹ dnʞɔıd ɹnoʎ sǝsɐǝɹɔuı ʇɐɥʇ ǝןnpoɯ ǝpɐɹbdn uⱯ",
   "item.gregpacks.maintenance_module": "ǝןnpoW ǝɔuɐuǝʇuıɐW",
   "item.gregpacks.maintenance_module.tooltip": "sʇuǝɯǝɹınbǝɹ ǝɔuɐuǝʇuıɐɯ ʎɟsıʇɐs oʇ ʞɔɐԀıuɯO ɹnoʎ ǝsn oʇ noʎ sʍoןןɐ ʇɐɥʇ ǝןnpoɯ ǝpɐɹbdn uⱯ",
+  "item.gregpacks.module.tooltip.energy_cost": "ʇ/∩Ǝ %s ɹ§:uoıʇdɯnsuoƆ ʎbɹǝuƎɔ§",
+  "item.gregpacks.module.tooltip.energy_multiplier": "x%s ɹ§:ɹǝıןdıʇןnW ʎʇıɔɐdɐƆ ʎbɹǝuƎɔ§",
+  "item.gregpacks.module.tooltip.fluid_multiplier": "x%s ɹ§:ɹǝıןdıʇןnW ʎʇıɔɐdɐƆ pınןℲ6§",
+  "item.gregpacks.module.tooltip.item_slots": "sʇoןs %s ɹ§:ǝsɐǝɹɔuI ʇoןS ɯǝʇI9§",
+  "item.gregpacks.module.tooltip.magnet_radius": "sʞɔoןq %s ɹ§:snıpɐᴚ dnʞɔıԀq§",
   "item.gregpacks.module_casting_mold": "pןoW buıʇsɐƆ ǝsɐᗺ ǝןnpoW",
   "item.gregpacks.module_casting_mold.tooltip": "sǝsɐᗺ ǝןnpoW buıʞɐɯ ɹoɟ pןoW",
   "item.gregpacks.module_extruder_mold": "pןoW ɹǝpnɹʇxƎ ǝsɐᗺ ǝןnpoW",
@@ -67,5 +72,6 @@
   "key.category.gregpacks": "sʞɔɐԀbǝɹ⅁",
   "key.gregpacks.open_omnipack": "ʎɹoʇuǝʌuI ʞɔɐԀıuɯO uǝdO",
   "message.gregpacks.maintenance_failed": "\"¡ʞɔɐd uı sןooʇ buıssıɯ 'pǝxıɟ sɯǝןqoɹd ǝɯoS\"",
-  "message.gregpacks.maintenance_fixed": "\"¡pǝxıɟ ǝɔuɐuǝʇuıɐW\""
+  "message.gregpacks.maintenance_fixed": "\"¡pǝxıɟ ǝɔuɐuǝʇuıɐW\"",
+  "message.gregpacks.module_limit": "˙ʞɔɐԀıuɯO uɐ uı pǝןןɐʇsuı ǝq uɐɔ ǝdʎʇ sıɥʇ ɟo ǝןnpoɯ ǝuo ʎןuOɔ§"
 }

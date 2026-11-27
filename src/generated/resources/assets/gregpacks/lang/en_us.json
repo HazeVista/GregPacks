@@ -48,6 +48,11 @@
   "item.gregpacks.magnet_module_2.tooltip": "An upgrade module that increases your pickup range with configurable range and filtering",
   "item.gregpacks.maintenance_module": "Maintenance Module",
   "item.gregpacks.maintenance_module.tooltip": "An upgrade module that allows you to use your OmniPack to satisfy maintenance requirements",
+  "item.gregpacks.module.tooltip.energy_cost": "§cEnergy Consumption:§r %s EU/t",
+  "item.gregpacks.module.tooltip.energy_multiplier": "§cEnergy Capacity Multiplier:§r %sx",
+  "item.gregpacks.module.tooltip.fluid_multiplier": "§9Fluid Capacity Multiplier:§r %sx",
+  "item.gregpacks.module.tooltip.item_slots": "§6Item Slot Increase:§r %s slots",
+  "item.gregpacks.module.tooltip.magnet_radius": "§bPickup Radius:§r %s blocks",
   "item.gregpacks.module_casting_mold": "Module Base Casting Mold",
   "item.gregpacks.module_casting_mold.tooltip": "Mold for making Module Bases",
   "item.gregpacks.module_extruder_mold": "Module Base Extruder Mold",
@@ -67,5 +72,6 @@
   "key.category.gregpacks": "GregPacks",
   "key.gregpacks.open_omnipack": "Open OmniPack Inventory",
   "message.gregpacks.maintenance_failed": "\"Some problems fixed, missing tools in pack!\"",
-  "message.gregpacks.maintenance_fixed": "\"Maintenance fixed!\""
+  "message.gregpacks.maintenance_fixed": "\"Maintenance fixed!\"",
+  "message.gregpacks.module_limit": "§cOnly one module of this type can be installed in an OmniPack."
 }

@@ -25,6 +25,7 @@ public class GregPacksLangHandler {
         provider.add("item.gregpacks.module_casting_mold.tooltip", "Mold for making Module Bases");
 
         // Upgrade Modules
+        provider.add("message.gregpacks.module_limit", "§cOnly one module of this type can be installed in an OmniPack.");
         provider.add("item.gregpacks.item_module_1.tooltip",
                 "An upgrade module that adds more item slots to your OmniPack");
         provider.add("item.gregpacks.item_module_2.tooltip",
@@ -59,6 +60,13 @@ public class GregPacksLangHandler {
                 "An upgrade module that increases your pickup range with configurable range and filtering");
         provider.add("item.gregpacks.processing_module.tooltip",
                 "An upgrade module that can be combined with singleblock machines for portable processing in your OmniPack");
+
+        // Module tooltip lines
+        provider.add("item.gregpacks.module.tooltip.item_slots", "§6Item Slot Increase:§r %s slots");
+        provider.add("item.gregpacks.module.tooltip.fluid_multiplier", "§9Fluid Capacity Multiplier:§r %sx");
+        provider.add("item.gregpacks.module.tooltip.energy_multiplier", "§cEnergy Capacity Multiplier:§r %sx");
+        provider.add("item.gregpacks.module.tooltip.energy_cost", "§cEnergy Consumption:§r %s EU/t");
+        provider.add("item.gregpacks.module.tooltip.magnet_radius", "§bPickup Radius:§r %s blocks");
 
         // Messages
         provider.add("message.gregpacks.maintenance_fixed",
