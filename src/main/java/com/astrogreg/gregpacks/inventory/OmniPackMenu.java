@@ -12,6 +12,7 @@ import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import com.astrogreg.gregpacks.util.JetpackConfigHelper;
 import com.astrogreg.gregpacks.util.PackTags;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -140,17 +141,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
 
                 @Override
                 public boolean mayPlace(ItemStack stack) {
-                    if (!(stack.getItem() instanceof UpgradeItem upgradeItem)) return false;
-                    UpgradeType incoming = upgradeItem.getUpgradeType();
-                    for (int j = 0; j < maxUpgrades; j++) {
-                        if (j == slotIdx) continue;
-                        ItemStack other = upgradeInvRef.getItem(j);
-                        if (!other.isEmpty() && other.getItem() instanceof UpgradeItem otherUpgrade &&
-                                otherUpgrade.getUpgradeType() == incoming) {
-                            return false;
-                        }
-                    }
-                    return true;
+                    return stack.getItem() instanceof UpgradeItem && !conflictsWithInstalled(stack, slotIdx);
                 }
 
                 @Override
@@ -178,6 +169,28 @@ public class OmniPackMenu extends AbstractContainerMenu {
                 }
             });
         }
+    }
+
+
+    // returns true if the stack is an upgrade category is exclusive and another installed module belongs to that category
+    private boolean conflictsWithInstalled(ItemStack stack, int ignoreSlot) {
+        if (!(stack.getItem() instanceof UpgradeItem incomingItem)) return false;
+        var category = incomingItem.getUpgradeType().category();
+        if (!category.isExclusive()) return false;
+        for (int j = 0; j < maxUpgrades; j++) {
+            if (j == ignoreSlot) continue;
+            ItemStack other = upgradeInventory.getItem(j);
+            if (!other.isEmpty() && other.getItem() instanceof UpgradeItem otherUpgrade &&
+                    otherUpgrade.getUpgradeType().category() == category) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // prints message for player if conflictsWithInstalled returns true
+    private void notifyModuleLimit(Player player) {
+        player.displayClientMessage(Component.translatable("message.gregpacks.module_limit"), true);
     }
 
     private void addCraftingSlots() {
@@ -340,6 +353,18 @@ public class OmniPackMenu extends AbstractContainerMenu {
         if (clickType == ClickType.SWAP && packSlotIndex >= 0 && button == packSlotIndex) {
             return;
         }
+
+        // tell the player why a module was refused
+        if (!player.level().isClientSide && slotId >= packSlots && slotId < packSlots + maxUpgrades) {
+            ItemStack incoming = ItemStack.EMPTY;
+            if (clickType == ClickType.PICKUP) {
+                incoming = getCarried();
+            } else if (clickType == ClickType.SWAP && ((button >= 0 && button < 9) || button == 40)) {
+                incoming = player.getInventory().getItem(button);
+            }
+            if (conflictsWithInstalled(incoming, slotId - packSlots)) notifyModuleLimit(player);
+        }
+
         super.clicked(slotId, button, clickType, player);
     }
 
@@ -374,7 +399,11 @@ public class OmniPackMenu extends AbstractContainerMenu {
             }
         } else {
             if (slotStack.getItem() instanceof UpgradeItem) {
-                if (!moveItemStackTo(slotStack, upgradeStart, upgradeEnd, false)) return ItemStack.EMPTY;
+                if (!moveItemStackTo(slotStack, upgradeStart, upgradeEnd, false)) {
+                    if (!player.level().isClientSide && conflictsWithInstalled(slotStack, -1))
+                        notifyModuleLimit(player);
+                    return ItemStack.EMPTY;
+                }
             } else if (!moveItemStackTo(slotStack, packStart, packEnd, false)) {
                 return ItemStack.EMPTY;
             }
