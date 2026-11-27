@@ -1,8 +1,19 @@
 package com.astrogreg.gregpacks;
 
+import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
+import com.astrogreg.gregpacks.config.GregPacksConfig;
+import com.astrogreg.gregpacks.inventory.OmniPackInventory;
+import com.astrogreg.gregpacks.inventory.OmniPackMenu;
+import com.astrogreg.gregpacks.item.OmniPackItem;
+import com.astrogreg.gregpacks.item.OmniPackTier;
+import com.astrogreg.gregpacks.network.CPacketKeyState;
+import com.astrogreg.gregpacks.network.GregPacksNetwork;
+import com.astrogreg.gregpacks.network.SPacketJetpackThrust;
+import com.astrogreg.gregpacks.registry.OmniPackBlockItem;
+import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
+import com.astrogreg.gregpacks.util.JetpackConfigHelper;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
-
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -18,19 +29,6 @@ import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
-
-import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
-import com.astrogreg.gregpacks.config.GregPacksConfig;
-import com.astrogreg.gregpacks.inventory.OmniPackInventory;
-import com.astrogreg.gregpacks.inventory.OmniPackMenu;
-import com.astrogreg.gregpacks.item.OmniPackItem;
-import com.astrogreg.gregpacks.item.OmniPackTier;
-import com.astrogreg.gregpacks.network.CPacketKeyState;
-import com.astrogreg.gregpacks.network.GregPacksNetwork;
-import com.astrogreg.gregpacks.network.SPacketJetpackThrust;
-import com.astrogreg.gregpacks.registry.OmniPackBlockItem;
-import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
-import com.astrogreg.gregpacks.util.JetpackConfigHelper;
 
 import java.util.List;
 
@@ -61,7 +59,8 @@ public class OmniPackTickHandler {
         player.getInventory().setChanged();
 
         int packSlot = menu.getPackSlotIndex();
-        if (packSlot >= 0) {} else if (net.minecraftforge.fml.ModList.get().isLoaded("curios")) {
+        if (packSlot >= 0) {
+        } else if (net.minecraftforge.fml.ModList.get().isLoaded("curios")) {
             top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player).ifPresent(inv -> {
                 var slots = inv.getCurios();
                 if (slots.containsKey("back")) {
@@ -102,15 +101,13 @@ public class OmniPackTickHandler {
             if (effects.hasFeeding) applyFeeding(player, activeStack, effects);
         }
 
-        // now always active if pack has EU stored
-        if (getStoredEU(activeStack) > 0) {
-            OmniPackMenu openMenu = null;
-            if (player.containerMenu instanceof OmniPackMenu opm && opm.getSourceBlockEntity() == null &&
-                    opm.getActiveStack() == activeStack) {
-                openMenu = opm;
-            }
-            applyCharging(activeStack, effects, openMenu);
+        // pull EU from batteries and push EU into chargeable items inside the pack
+        OmniPackMenu openMenu = null;
+        if (player.containerMenu instanceof OmniPackMenu opm && opm.getSourceBlockEntity() == null &&
+                opm.getActiveStack() == activeStack) {
+            openMenu = opm;
         }
+        applyCharging(activeStack, effects, openMenu);
 
         // only when equipped in curios slot
         if (canJetpack) applyJetpack(player, activeStack, effects);
@@ -141,41 +138,61 @@ public class OmniPackTickHandler {
                 .orElse(ItemStack.EMPTY);
     }
 
+    // is applyCharging more consistent or applyEnergyTransfer? just pure cosmetic don't mind me.
     private static void applyCharging(ItemStack packStack, UpgradeEffects effects, OmniPackMenu openMenu) {
-        long available = getStoredEU(packStack);
-        if (available <= 0) return;
+        long cap = effects.totalEnergyStorage;
+        if (cap <= 0) return;
 
         OmniPackInventory packInv = openMenu != null ? openMenu.getPackInventory() :
                 OmniPackInventory.fromItem(packStack, effects.totalSlots);
 
+        long stored = getStoredEU(packStack);
         boolean dirty = false;
-        for (int i = 0; i < packInv.getContainerSize(); i++) {
-            if (available <= 0) break;
 
-            ItemStack tool = packInv.getItem(i);
-            if (tool.isEmpty()) continue;
+        for (int i = 0; i < packInv.getContainerSize(); i++) {
+            ItemStack content = packInv.getItem(i);
+            if (content.isEmpty()) continue;
 
             // eu capable
-            IElectricItem electric = tool.getCapability(GTCapability.CAPABILITY_ELECTRIC_ITEM)
+            IElectricItem electric = content.getCapability(GTCapability.CAPABILITY_ELECTRIC_ITEM)
                     .resolve().orElse(null);
-            if (electric != null && electric.chargeable()) {
-                long toCharge = Math.min(available, electric.getTransferLimit());
-                long charged = electric.charge(toCharge, Integer.MAX_VALUE, false, false);
-                if (charged > 0) {
-                    available -= charged;
-                    dirty = true;
+            if (electric != null) {
+                if (electric.canProvideChargeExternally()) {
+                    if (stored < cap) {
+                        long pulled = electric.discharge(cap - stored, Integer.MAX_VALUE, false, true, false);
+                        if (pulled > 0) {
+                            stored += pulled;
+                            dirty = true;
+                        }
+                    }
+                } else if (electric.chargeable() && stored > 0) {
+                    long toCharge = Math.min(stored, electric.getTransferLimit());
+                    long charged = electric.charge(toCharge, Integer.MAX_VALUE, false, false);
+                    if (charged > 0) {
+                        stored -= charged;
+                        dirty = true;
+                    }
                 }
                 continue;
             }
 
             // non-eu capable
-            IEnergyStorage forgeEnergy = tool.getCapability(ForgeCapabilities.ENERGY)
+            IEnergyStorage forgeEnergy = content.getCapability(ForgeCapabilities.ENERGY)
                     .resolve().orElse(null);
-            if (forgeEnergy != null && forgeEnergy.canReceive()) {
-                int toCharge = (int) Math.min(available, Integer.MAX_VALUE);
-                int charged = forgeEnergy.receiveEnergy(toCharge, false);
+            if (forgeEnergy == null) continue;
+
+            if (forgeEnergy.canExtract()) {
+                if (stored < cap) {
+                    int pulled = forgeEnergy.extractEnergy((int) Math.min(cap - stored, Integer.MAX_VALUE), false);
+                    if (pulled > 0) {
+                        stored += pulled;
+                        dirty = true;
+                    }
+                }
+            } else if (forgeEnergy.canReceive() && stored > 0) {
+                int charged = forgeEnergy.receiveEnergy((int) Math.min(stored, Integer.MAX_VALUE), false);
                 if (charged > 0) {
-                    available -= charged;
+                    stored -= charged;
                     dirty = true;
                 }
             }
@@ -183,7 +200,7 @@ public class OmniPackTickHandler {
 
         if (dirty) {
             packInv.saveToItem(packStack);
-            setStoredEU(packStack, available, effects.totalEnergyStorage);
+            setStoredEU(packStack, stored, cap);
             if (openMenu != null) openMenu.broadcastChanges();
         }
     }
