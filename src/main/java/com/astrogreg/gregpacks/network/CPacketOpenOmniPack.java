@@ -2,6 +2,7 @@ package com.astrogreg.gregpacks.network;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 
@@ -19,9 +20,11 @@ import java.util.function.Supplier;
  */
 public class CPacketOpenOmniPack {
 
-    public CPacketOpenOmniPack() {}
+    public CPacketOpenOmniPack() {
+    }
 
-    public static void encode(CPacketOpenOmniPack msg, FriendlyByteBuf buf) {}
+    public static void encode(CPacketOpenOmniPack msg, FriendlyByteBuf buf) {
+    }
 
     public static CPacketOpenOmniPack decode(FriendlyByteBuf buf) {
         return new CPacketOpenOmniPack();
@@ -31,6 +34,15 @@ public class CPacketOpenOmniPack {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
+
+            var Inv = player.getInventory();
+            int chestIndex = Inv.items.size() + EquipmentSlot.CHEST.getIndex();
+            ItemStack chestStack = Inv.getItem(chestIndex);
+            OmniPackTier chestTier = getTier(chestStack);
+            if (chestTier != null) {
+                OpenPackHelper.open(player, chestStack, chestTier, chestIndex);
+                return;
+            }
 
             if (net.minecraftforge.fml.ModList.get().isLoaded("curios")) {
                 top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player).ifPresent(inv -> {

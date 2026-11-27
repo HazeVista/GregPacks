@@ -15,6 +15,7 @@ import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
@@ -77,14 +78,7 @@ public class OmniPackTickHandler {
         Level level = player.level();
         if (level.isClientSide) return;
 
-        ItemStack activeStack = findPackInCurios(player);
-        boolean canJetpack = activeStack != null && !activeStack.isEmpty();
-
-        if (activeStack == null || activeStack.isEmpty()) {
-            activeStack = findPackInInventory(player);
-            canJetpack = false;
-        }
-
+        ItemStack activeStack = findEquippedPack(player);
         if (activeStack == null || activeStack.isEmpty()) return;
 
         OmniPackTier tier = getTier(activeStack);
@@ -93,10 +87,9 @@ public class OmniPackTickHandler {
         OmniPackInventory upgInv = OmniPackInventory.fromUpgradeItem(activeStack, tier.defaultMaxUpgrades);
         UpgradeEffects effects = new UpgradeEffects(tier, upgInv);
 
-        // Magnet works from anywhere
         if (effects.magnetRadius > 0) applyMagnet(player, level, effects.magnetRadius);
 
-        // throttled, works from anywhere
+        // throttled to once per TICK_INTERVAL
         if (player.tickCount % TICK_INTERVAL == 0) {
             if (effects.hasFeeding) applyFeeding(player, activeStack, effects);
         }
@@ -109,17 +102,14 @@ public class OmniPackTickHandler {
         }
         applyCharging(activeStack, effects, openMenu);
 
-        // only when equipped in curios slot
-        if (canJetpack) applyJetpack(player, activeStack, effects);
+        applyJetpack(player, activeStack, effects);
     }
 
     // Pack finders
-    private static ItemStack findPackInInventory(Player player) {
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            if (getTier(stack) != null) return stack;
-        }
-        return null;
+    private static ItemStack findEquippedPack(Player player) {
+        ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
+        if (getTier(chest) != null) return chest;
+        return findPackInCurios(player);
     }
 
     private static ItemStack findPackInCurios(Player player) {
