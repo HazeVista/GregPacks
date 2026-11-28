@@ -7,6 +7,7 @@ import com.astrogreg.gregpacks.inventory.OmniPackInventory;
 import com.astrogreg.gregpacks.item.OmniPackTier;
 import com.astrogreg.gregpacks.item.UpgradeItem;
 import com.astrogreg.gregpacks.item.UpgradeType;
+import com.astrogreg.gregpacks.util.MagnetConfigHelper;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -19,6 +20,7 @@ public class UpgradeEffects {
     public final int totalFluidStorage;
     public final long totalEnergyStorage;
     public final int magnetRadius;
+    public final ItemStack magnetModule;
     public final boolean hasFeeding;
     public final boolean hasMaintenance;
     public final boolean hasJetpack1;
@@ -53,8 +55,10 @@ public class UpgradeEffects {
         if (installed.contains(UpgradeType.ENERGY_CAPACITY_III)) energyMultiplier *= cfg.energyModule3Bonus;
         this.totalEnergyStorage = (long) (tier.defaultEnergyStorage * energyMultiplier);
 
-        // Magnet — higher tier overrides lower if both present
-        if (installed.contains(UpgradeType.MAGNET_II)) this.magnetRadius = cfg.magnetModule2Radius;
+        // Magnet — higher tier overrides lower if both present. Magnet II uses the range set on the module.
+        this.magnetModule = MagnetConfigHelper.findModule(upgradeInventory);
+        if (installed.contains(UpgradeType.MAGNET_II))
+            this.magnetRadius = MagnetConfigHelper.getRange(magnetModule, cfg.magnetModule2Radius);
         else if (installed.contains(UpgradeType.MAGNET_I)) this.magnetRadius = cfg.magnetModule1Radius;
         else this.magnetRadius = 0;
 

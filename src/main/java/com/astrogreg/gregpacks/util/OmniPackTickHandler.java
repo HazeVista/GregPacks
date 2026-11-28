@@ -15,7 +15,6 @@ import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
@@ -32,6 +31,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 @Mod.EventBusSubscriber(modid = GregPacks.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class OmniPackTickHandler {
@@ -78,7 +78,14 @@ public class OmniPackTickHandler {
         Level level = player.level();
         if (level.isClientSide) return;
 
-        ItemStack activeStack = findEquippedPack(player);
+        ItemStack activeStack = findPackInCurios(player);
+        boolean canJetpack = activeStack != null && !activeStack.isEmpty();
+
+        if (activeStack == null || activeStack.isEmpty()) {
+            activeStack = findPackInInventory(player);
+            canJetpack = false;
+        }
+
         if (activeStack == null || activeStack.isEmpty()) return;
 
         OmniPackTier tier = getTier(activeStack);
@@ -87,9 +94,10 @@ public class OmniPackTickHandler {
         OmniPackInventory upgInv = OmniPackInventory.fromUpgradeItem(activeStack, tier.defaultMaxUpgrades);
         UpgradeEffects effects = new UpgradeEffects(tier, upgInv);
 
-        if (effects.magnetRadius > 0) applyMagnet(player, level, effects.magnetRadius);
+        // Magnet works from anywhere
+        if (effects.magnetRadius > 0) applyMagnet(player, level, effects.magnetRadius, effects.magnetModule);
 
-        // throttled to once per TICK_INTERVAL
+        // throttled, works from anywhere
         if (player.tickCount % TICK_INTERVAL == 0) {
             if (effects.hasFeeding) applyFeeding(player, activeStack, effects);
         }
@@ -102,14 +110,17 @@ public class OmniPackTickHandler {
         }
         applyCharging(activeStack, effects, openMenu);
 
-        applyJetpack(player, activeStack, effects);
+        // only when equipped in curios slot
+        if (canJetpack) applyJetpack(player, activeStack, effects);
     }
 
     // Pack finders
-    private static ItemStack findEquippedPack(Player player) {
-        ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
-        if (getTier(chest) != null) return chest;
-        return findPackInCurios(player);
+    private static ItemStack findPackInInventory(Player player) {
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (getTier(stack) != null) return stack;
+        }
+        return null;
     }
 
     private static ItemStack findPackInCurios(Player player) {
@@ -195,12 +206,14 @@ public class OmniPackTickHandler {
         }
     }
 
-    private static void applyMagnet(Player player, Level level, int radius) {
+    private static void applyMagnet(Player player, Level level, int radius, ItemStack magnetModule) {
+        Predicate<ItemStack> filter = MagnetConfigHelper.filterOf(magnetModule);
         AABB area = player.getBoundingBox().inflate(radius);
         List<ItemEntity> items = level.getEntitiesOfClass(ItemEntity.class, area);
         for (ItemEntity entity : items) {
             if (entity.hasPickUpDelay()) continue;
             if (getTier(entity.getItem()) != null) continue; // it doesn't attract other packs
+            if (!filter.test(entity.getItem())) continue; // Magnet II filter
             entity.playerTouch(player);
         }
     }

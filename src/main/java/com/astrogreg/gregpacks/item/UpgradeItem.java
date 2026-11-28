@@ -7,12 +7,17 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
 import com.astrogreg.gregpacks.config.GregPacksConfig;
+import com.astrogreg.gregpacks.util.MagnetConfigHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Base class for all OmniPack upgrade modules.
+ * Only one upgrade per {@link UpgradeCategory} can be installed.
+ */
 public class UpgradeItem extends Item {
 
     private final UpgradeType upgradeType;
@@ -32,13 +37,18 @@ public class UpgradeItem extends Item {
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level,
                                 @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag isAdvanced) {
         tooltipComponents.add(Component.translatable(descriptionKey));
-        Component effect = effectLine();
+        Component effect = effectLine(stack);
         if (effect != null) tooltipComponents.add(effect);
+
+        if (upgradeType == UpgradeType.MAGNET_II) {
+            tooltipComponents.add(Component.translatable(MagnetConfigHelper.isFilterOn(stack) ?
+                    "item.gregpacks.module.tooltip.filter_active" : "item.gregpacks.module.tooltip.filter_inactive"));
+        }
     }
 
-    // reads the client config values.
+    // Reads the client's config values
     @Nullable
-    private Component effectLine() {
+    private Component effectLine(ItemStack stack) {
         if (GregPacksConfig.INSTANCE == null) return null;
         GregPacksConfig.UpgradeConfigs cfg = GregPacksConfig.INSTANCE.ModuleValues;
 
@@ -56,7 +66,7 @@ public class UpgradeItem extends Item {
             case ENERGY_CAPACITY_III -> energy(cfg.energyModule3Bonus);
 
             case MAGNET_I -> radius(cfg.magnetModule1Radius);
-            case MAGNET_II -> radius(cfg.magnetModule2Radius);
+            case MAGNET_II -> radius(MagnetConfigHelper.getRange(stack, cfg.magnetModule2Radius));
 
             case JETPACK_I -> cost(cfg.jetpackModule1EUCost);
             case JETPACK_II -> cost(cfg.jetpackModule2EUCost);
@@ -85,8 +95,7 @@ public class UpgradeItem extends Item {
         return Component.translatable("item.gregpacks.module.tooltip.energy_cost", String.valueOf(v));
     }
 
-    // this just strips off trailing zeros
-    // (i.e. 2.00 -> "2.0", 1.25 -> "1.25")
+    // remove trailing zeros
     private static String fmt(double v) {
         String s = BigDecimal.valueOf(v).stripTrailingZeros().toPlainString();
         return s.contains(".") ? s : s + ".0";

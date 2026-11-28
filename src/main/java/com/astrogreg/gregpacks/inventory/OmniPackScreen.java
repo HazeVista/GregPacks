@@ -10,13 +10,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 
 import com.astrogreg.gregpacks.GregPacks;
+import com.astrogreg.gregpacks.config.GregPacksConfig;
 import com.astrogreg.gregpacks.network.CPacketFluidInteract;
 import com.astrogreg.gregpacks.network.CPacketJetpackConfig;
+import com.astrogreg.gregpacks.network.CPacketMagnetConfig;
 import com.astrogreg.gregpacks.network.GregPacksNetwork;
+import com.astrogreg.gregpacks.util.MagnetConfigHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -40,7 +44,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     // Layout
     private static final int PAD = 7;
     private static final int COLS = 9;
-    private static final int SLOT_S = 18;
+    private static final int SLOT_S = 18; // gulp
     private static final int LABEL_H = 14;
 
     private static final int BAR_W = 10;
@@ -48,9 +52,9 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     private static final int BAR_GAP = 3;
 
     // Rail buttons
-    private static final int BTN = 20;
+    private static final int BTN = 20; // button frame (drawn in code)
     private static final int BTN_GAP = 2;
-    private static final int ICON = 16;
+    private static final int ICON = 16; // icon texture size
 
     // Panels
     private static final int UP_COLS = 2;
@@ -61,14 +65,26 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     private static final int CRAFT_H = UP_PAD + 3 * SLOT_S + UP_PAD;
     private static final int JETPACK_PANEL_W = 90;
     private static final int JETPACK_PANEL_H = 44;
-    // widest panel, used to decide which side rail goes on. Raise if a wider panel is added.
+    private static final int MAGNET_PANEL_W = 100;
+    private static final int MAGNET_PANEL_H = 120;
+    private static final int MAGNET_GRID_Y = 60; // top of the 3x3 filter grid, relative to the panel
+    private static final int MAGNET_BTN_H = 12;
+    private static final int FILTER_BTN_W = 40;
+    private static final int MODE_BTN_W = 52;
+    // widest panel, used to decide which side the rail goes on. Raise this when a wider panel is added.
     private static final int MAX_PANEL_W = CRAFT_W;
 
+    /**
+     * Declaration order is the button order (top to bottom).
+     * Planned order once they exist: UPGRADES, CRAFTING, CHARGING, JETPACK, MAGNET.
+     * Icons: assets/gregpacks/textures/gui/icons/<name>.png, 16x16. A coloured letter is drawn until the file exists.
+     */
     private enum Panel {
 
         UPGRADES("upgrades", "container.gregpacks.tab.upgrades", "U", 0xFF3B6FD4),
         CRAFTING("crafting", "container.gregpacks.tab.crafting", "C", 0xFF8A5A2B),
-        JETPACK("jetpack", "container.gregpacks.tab.jetpack", "J", 0xFFC0392B);
+        JETPACK("jetpack", "container.gregpacks.tab.jetpack", "J", 0xFFC0392B),
+        MAGNET("magnet", "container.gregpacks.tab.magnet", "M", 0xFF7A3FBF);
 
         final ResourceLocation icon;
         final String langKey;
@@ -84,10 +100,10 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     }
 
     // State
-    // Remembered between screens so reopened omnipacks keeps the open panel
+    // Remembered between screens, so the pack reopening itself (slot count change) keeps the open panel.
     private static Panel lastSelected = null;
 
-    private Panel selected = lastSelected; // what the player chooses
+    private Panel selected = lastSelected; // what the player chose (may be unavailable right now)
     private Panel laidOut = null; // panel whose layout is currently applied
     private int lastFlags = -1;
     private boolean railLeft;
@@ -118,7 +134,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         super.init();
         applyMainLayout();
 
-        // Rail goes on the left when the rail + widest panel fit, otherwise on the right (past the bars)
+        // Rail goes on the left when the rail plus the widest panel fit, otherwise on the right (past the bars)
         railLeft = leftPos - POPUP_GAP - BTN - POPUP_GAP - MAX_PANEL_W >= 2;
         railX = railLeft ? leftPos - POPUP_GAP - BTN :
                 leftPos + imageWidth + BAR_GAP + 2 * BAR_W + BAR_SEP + POPUP_GAP;
@@ -148,7 +164,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         refreshPanel();
     }
 
-    // Shows the buttons of installed modules packed from the top in enum order
+    // Shows the buttons of installed modules, packed from the top in enum order
     private void positionRailButtons() {
         int row = 0;
         for (Panel p : Panel.values()) {
@@ -166,6 +182,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
             case UPGRADES -> true;
             case CRAFTING -> menu.hasCrafting();
             case JETPACK -> menu.hasJetpack2();
+            case MAGNET -> menu.hasMagnet2();
         };
     }
 
@@ -184,7 +201,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     // Re-applies the layout whenever the open panel or the installed modules change (checked every frame)
     private void refreshPanel() {
         Panel eff = effectivePanel();
-        int flags = (menu.hasCrafting() ? 1 : 0) | (menu.hasJetpack2() ? 2 : 0);
+        int flags = (menu.hasCrafting() ? 1 : 0) | (menu.hasJetpack2() ? 2 : 0) | (menu.hasMagnet2() ? 4 : 0);
         if (eff == laidOut && flags == lastFlags) return;
         laidOut = eff;
         lastFlags = flags;
@@ -200,6 +217,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
             }
             case CRAFTING -> new int[] { CRAFT_W, CRAFT_H };
             case JETPACK -> new int[] { JETPACK_PANEL_W, JETPACK_PANEL_H };
+            case MAGNET -> new int[] { MAGNET_PANEL_W, MAGNET_PANEL_H };
         };
     }
 
@@ -217,7 +235,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         switch (p) {
             case UPGRADES -> placeUpgradeSlots();
             case CRAFTING -> placeCraftSlots();
-            case JETPACK -> {}
+            case JETPACK, MAGNET -> {}
         }
     }
 
@@ -272,10 +290,11 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         refreshPanel();
         renderBackground(g);
         super.render(g, mx, my, pt);
-        renderPanel(g);
+        renderPanel(g, mx, my);
         renderRailIcons(g);
         renderBars(g, mx, my);
         renderTooltip(g, mx, my);
+        renderMagnetTooltip(g, mx, my);
     }
 
     @Override
@@ -309,7 +328,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         return topPos + index * (BTN + BTN_GAP);
     }
 
-    // Icon drawn over each vanilla button
+    // Icon (or fallback letter) drawn over each vanilla button; the open panel's button is darkened
     private void renderRailIcons(GuiGraphics g) {
         for (Panel p : Panel.values()) {
             Button b = railButtons.get(p);
@@ -332,7 +351,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     }
 
     // Panels
-    private void renderPanel(GuiGraphics g) {
+    private void renderPanel(GuiGraphics g, int mx, int my) {
         if (laidOut == null) return;
         g.fill(panelX, panelY, panelX + panelW, panelY + panelH, C_BG);
         raised(g, panelX, panelY, panelW, panelH);
@@ -341,6 +360,7 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
             case UPGRADES -> renderUpgradesPanel(g);
             case CRAFTING -> renderCraftPanel(g);
             case JETPACK -> renderJetpackPanel(g);
+            case MAGNET -> renderMagnetPanel(g, mx, my);
         }
     }
 
@@ -385,6 +405,71 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
         g.drawString(font, "Thrust: " + menu.getJetpackThrust(), px + UP_PAD, py + 24, C_TEXT, false);
         renderSmallButton(g, px + pw - UP_PAD - 22, py + 22, "-", 2);
         renderSmallButton(g, px + pw - UP_PAD - 10, py + 22, "+", 3);
+    }
+
+    private int ghostX() {
+        return panelX + (panelW - 3 * SLOT_S) / 2;
+    }
+
+    private int ghostY() {
+        return panelY + MAGNET_GRID_Y;
+    }
+
+    private void renderMagnetPanel(GuiGraphics g, int mx, int my) {
+        ItemStack module = menu.getMagnetModule();
+        int maxRange = GregPacksConfig.INSTANCE.ModuleValues.magnetModule2Radius;
+        int px = panelX, py = panelY, pw = panelW;
+
+        g.drawString(font, "Range: " + MagnetConfigHelper.getRange(module, maxRange),
+                px + UP_PAD, py + 6, C_TEXT, false);
+        renderSmallButton(g, px + pw - UP_PAD - 22, py + 4, "-", 4);
+        renderSmallButton(g, px + pw - UP_PAD - 10, py + 4, "+", 5);
+
+        boolean on = MagnetConfigHelper.isFilterOn(module);
+        g.drawString(font, "Filter:", px + UP_PAD, py + 24, C_TEXT, false);
+        renderWideButton(g, px + pw - UP_PAD - FILTER_BTN_W, py + 22, FILTER_BTN_W, on ? "On" : "Off",
+                on ? 0xFF1E7A1E : C_TEXT, 6);
+
+        boolean whitelist = MagnetConfigHelper.isWhitelist(module);
+        g.drawString(font, "Mode:", px + UP_PAD, py + 42, C_TEXT, false);
+        renderWideButton(g, px + pw - UP_PAD - MODE_BTN_W, py + 40, MODE_BTN_W,
+                whitelist ? "Whitelist" : "Blacklist", C_TEXT, 7);
+
+        // ghost filter slots: they only remember an item, nothing is consumed
+        for (int i = 0; i < MagnetConfigHelper.FILTER_SLOTS; i++) {
+            int x = ghostX() + (i % 3) * SLOT_S;
+            int y = ghostY() + (i / 3) * SLOT_S;
+            slotInset(g, x, y);
+            ItemStack f = MagnetConfigHelper.getFilterItem(module, i);
+            if (!f.isEmpty()) g.renderItem(f, x + 1, y + 1);
+            if (inRect(mx, my, x, y, SLOT_S, SLOT_S)) g.fill(x + 1, y + 1, x + SLOT_S - 1, y + SLOT_S - 1, 0x80FFFFFF);
+        }
+    }
+
+    private void renderMagnetTooltip(GuiGraphics g, int mx, int my) {
+        if (laidOut != Panel.MAGNET) return;
+        ItemStack module = menu.getMagnetModule();
+        for (int i = 0; i < MagnetConfigHelper.FILTER_SLOTS; i++) {
+            int x = ghostX() + (i % 3) * SLOT_S;
+            int y = ghostY() + (i / 3) * SLOT_S;
+            if (!inRect(mx, my, x, y, SLOT_S, SLOT_S)) continue;
+            ItemStack f = MagnetConfigHelper.getFilterItem(module, i);
+            if (f.isEmpty()) {
+                g.renderTooltip(font, Component.literal("§7Click with an item to add it to the filter"), mx, my);
+            } else {
+                g.renderTooltip(font, f, mx, my);
+            }
+            return;
+        }
+    }
+
+    private void renderWideButton(GuiGraphics g, int x, int y, int w, String label, int color, int id) {
+        boolean pressed = pressedButton == id && System.currentTimeMillis() < pressedUntil;
+        g.fill(x, y, x + w, y + MAGNET_BTN_H, pressed ? C_DARK : C_BG);
+        if (!pressed) raised(g, x, y, w, MAGNET_BTN_H);
+        else sunken(g, x, y, w, MAGNET_BTN_H);
+        g.drawString(font, label, x + (w - font.width(label)) / 2, y + (MAGNET_BTN_H - 8) / 2 + (pressed ? 1 : 0),
+                color, false);
     }
 
     private void renderSmallButton(GuiGraphics g, int x, int y, String label, int id) {
@@ -471,6 +556,32 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
             }
         }
 
+        if (laidOut == Panel.MAGNET) {
+            int px = panelX, py = panelY, pw = panelW;
+            if (inButton(mx, my, px + pw - UP_PAD - 22, py + 4)) {
+                sendMagnet(CPacketMagnetConfig.RANGE, -1, 4);
+                return true;
+            } else if (inButton(mx, my, px + pw - UP_PAD - 10, py + 4)) {
+                sendMagnet(CPacketMagnetConfig.RANGE, +1, 5);
+                return true;
+            } else if (inRect(mx, my, px + pw - UP_PAD - FILTER_BTN_W, py + 22, FILTER_BTN_W, MAGNET_BTN_H)) {
+                sendMagnet(CPacketMagnetConfig.TOGGLE_FILTER, 0, 6);
+                return true;
+            } else if (inRect(mx, my, px + pw - UP_PAD - MODE_BTN_W, py + 40, MODE_BTN_W, MAGNET_BTN_H)) {
+                sendMagnet(CPacketMagnetConfig.TOGGLE_MODE, 0, 7);
+                return true;
+            }
+            for (int i = 0; i < MagnetConfigHelper.FILTER_SLOTS; i++) {
+                int x = ghostX() + (i % 3) * SLOT_S;
+                int y = ghostY() + (i / 3) * SLOT_S;
+                if (inRect(mx, my, x, y, SLOT_S, SLOT_S)) {
+                    boolean carrying = !menu.getCarried().isEmpty();
+                    sendMagnet(carrying ? CPacketMagnetConfig.SET_SLOT : CPacketMagnetConfig.CLEAR_SLOT, i, -1);
+                    return true;
+                }
+            }
+        }
+
         int bx1 = leftPos + imageWidth + BAR_GAP;
         if (mx >= bx1 && mx < bx1 + BAR_W && my >= topPos && my < topPos + imageHeight) {
             if (btn == 0 || btn == 1) {
@@ -483,7 +594,19 @@ public class OmniPackScreen extends AbstractContainerScreen<OmniPackMenu> {
     }
 
     private boolean inButton(double mx, double my, int x, int y) {
-        return mx >= x && mx < x + 10 && my >= y && my < y + 10;
+        return inRect(mx, my, x, y, 10, 10);
+    }
+
+    private boolean inRect(double mx, double my, int x, int y, int w, int h) {
+        return mx >= x && mx < x + w && my >= y && my < y + h;
+    }
+
+    private void sendMagnet(int action, int value, int pressedId) {
+        GregPacksNetwork.CHANNEL.sendToServer(new CPacketMagnetConfig(action, value));
+        if (pressedId >= 0) {
+            pressedButton = pressedId;
+            pressedUntil = System.currentTimeMillis() + 100;
+        }
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.astrogreg.gregpacks.item.UpgradeType;
 import com.astrogreg.gregpacks.registry.GregPacksMenus;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import com.astrogreg.gregpacks.util.JetpackConfigHelper;
+import com.astrogreg.gregpacks.util.MagnetConfigHelper;
 import com.astrogreg.gregpacks.util.PackTags;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -171,8 +172,10 @@ public class OmniPackMenu extends AbstractContainerMenu {
         }
     }
 
-
-    // returns true if the stack is an upgrade category is exclusive and another installed module belongs to that category
+    /**
+     * True if the stack is an upgrade whose category is exclusive and another installed module
+     * (ignoring ignoreSlot) already belongs to that category.
+     */
     private boolean conflictsWithInstalled(ItemStack stack, int ignoreSlot) {
         if (!(stack.getItem() instanceof UpgradeItem incomingItem)) return false;
         var category = incomingItem.getUpgradeType().category();
@@ -188,7 +191,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
         return false;
     }
 
-    // prints message for player if conflictsWithInstalled returns true
+    // Action bar message (pass false instead of true to print in chat)
     private void notifyModuleLimit(Player player) {
         player.displayClientMessage(Component.translatable("message.gregpacks.module_limit"), true);
     }
@@ -354,7 +357,7 @@ public class OmniPackMenu extends AbstractContainerMenu {
             return;
         }
 
-        // tell the player why a module was refused
+        // tell the player why a module was refused (server side only)
         if (!player.level().isClientSide && slotId >= packSlots && slotId < packSlots + maxUpgrades) {
             ItemStack incoming = ItemStack.EMPTY;
             if (clickType == ClickType.PICKUP) {
@@ -532,6 +535,14 @@ public class OmniPackMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         return true;
+    }
+
+    public ItemStack getMagnetModule() {
+        return MagnetConfigHelper.findModule(upgradeInventory);
+    }
+
+    public boolean hasMagnet2() {
+        return !getMagnetModule().isEmpty();
     }
 
     public boolean hasJetpack2() {

@@ -54,5 +54,11 @@ public class GregPacksNetwork {
                 .decoder(CPacketJetpackConfig::decode)
                 .consumerMainThread(CPacketJetpackConfig::handle)
                 .add();
+
+        CHANNEL.messageBuilder(CPacketMagnetConfig.class, 6, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(CPacketMagnetConfig::encode)
+                .decoder(CPacketMagnetConfig::decode)
+                .consumerMainThread(CPacketMagnetConfig::handle)
+                .add();
     }
 }
