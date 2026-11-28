@@ -19,6 +19,8 @@ public class GregPacksLangHandler {
         provider.add("container.gregpacks.tab.upgrades", "Upgrade Modules");
         provider.add("container.gregpacks.omnipack", "OmniPack Inventory");
         provider.add("container.gregpacks.upgrades", "Upgrade Modules");
+        provider.add("container.gregpacks.tab.crafting", "Crafting");
+        provider.add("container.gregpacks.tab.jetpack", "Jetpack Settings");
 
         // Molds
         provider.add("item.gregpacks.module_extruder_mold.tooltip", "Extruder shape for making Module Bases");
