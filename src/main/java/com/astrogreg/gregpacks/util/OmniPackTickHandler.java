@@ -3,6 +3,8 @@ package com.astrogreg.gregpacks.util;
 import com.astrogreg.gregpacks.GregPacks;
 import com.astrogreg.gregpacks.block.OmniPackBlockEntity;
 import com.astrogreg.gregpacks.config.GregPacksConfig;
+import com.astrogreg.gregpacks.config.JetpackConfigHelper;
+import com.astrogreg.gregpacks.config.MagnetConfigHelper;
 import com.astrogreg.gregpacks.inventory.OmniPackInventory;
 import com.astrogreg.gregpacks.inventory.OmniPackMenu;
 import com.astrogreg.gregpacks.item.OmniPackItem;
@@ -14,8 +16,10 @@ import com.astrogreg.gregpacks.registry.OmniPackBlockItem;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import com.gregtechceu.gtceu.api.capability.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+import com.gregtechceu.gtceu.config.ConfigHolder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
@@ -102,7 +106,10 @@ public class OmniPackTickHandler {
             if (effects.hasFeeding) applyFeeding(player, activeStack, effects);
         }
 
-        // pull EU from batteries and push EU into chargeable items inside the pack
+        // pull EU from batteries in the PLAYER's inventory (never from the pack's own slots)
+        applyBatteryPull(player, activeStack, effects);
+
+        // push EU into chargeable items inside the pack
         OmniPackMenu openMenu = null;
         if (player.containerMenu instanceof OmniPackMenu opm && opm.getSourceBlockEntity() == null &&
                 opm.getActiveStack() == activeStack) {
@@ -111,7 +118,7 @@ public class OmniPackTickHandler {
         applyCharging(activeStack, effects, openMenu);
 
         // only when equipped in curios slot
-        if (canJetpack) applyJetpack(player, activeStack, effects);
+        if (canJetpack) applyJetpack(player, activeStack, effects, upgInv);
     }
 
     // Pack finders
@@ -139,18 +146,85 @@ public class OmniPackTickHandler {
                 .orElse(ItemStack.EMPTY);
     }
 
-    // is applyCharging more consistent or applyEnergyTransfer? just pure cosmetic don't mind me.
+    // FE conversion follows GTCEu config
+    // FE items are only used while the config enableFEConverters is on
+    // pulls EU into the pack from energy containers in the player inventory
+    private static void applyBatteryPull(Player player, ItemStack packStack, UpgradeEffects effects) {
+        long cap = effects.totalEnergyStorage;
+        if (cap <= 0) return;
+
+        long stored = getStoredEU(packStack);
+        if (stored >= cap) return;
+
+        var energyCfg = ConfigHolder.INSTANCE.compat.energy;
+        boolean feEnabled = energyCfg.enableFEConverters;
+        int feToEu = Math.max(1, energyCfg.feToEuRatio);
+
+        Inventory inv = player.getInventory();
+        boolean dirty = false;
+
+        for (int pass = 0; pass < 2 && stored < cap; pass++) {
+            List<ItemStack> list = pass == 0 ? inv.items : inv.offhand;
+            for (ItemStack stack : list) {
+                if (stored >= cap) break;
+                if (stack.isEmpty() || getTier(stack) != null) continue;
+
+                IElectricItem electric = stack.getCapability(GTCapability.CAPABILITY_ELECTRIC_ITEM)
+                        .resolve().orElse(null);
+                if (electric != null) {
+                    if (electric.canProvideChargeExternally()) {
+                        long pulled = electric.discharge(cap - stored, Integer.MAX_VALUE, false, true, false);
+                        if (pulled > 0) {
+                            stored += pulled;
+                            dirty = true;
+                        }
+                    }
+                    continue;
+                }
+
+                // Forge Energy is converted with GTCEu config FE to EU ratio
+                if (!feEnabled) continue;
+                IEnergyStorage fe = stack.getCapability(ForgeCapabilities.ENERGY).resolve().orElse(null);
+                if (fe == null || !fe.canExtract()) continue;
+
+                long euWanted = Math.min(cap - stored, Integer.MAX_VALUE / feToEu);
+                int available = fe.extractEnergy((int) (euWanted * feToEu), true);
+                long euGained = available / feToEu; // whole EU only, no remainder lost
+                if (euGained <= 0) continue;
+
+                int extracted = fe.extractEnergy((int) (euGained * feToEu), false);
+                long gained = extracted / feToEu;
+                if (gained > 0) {
+                    stored += gained;
+                    dirty = true;
+                }
+            }
+        }
+
+        if (dirty) {
+            setStoredEU(packStack, stored, cap);
+            inv.setChanged();
+        }
+    }
+
     private static void applyCharging(ItemStack packStack, UpgradeEffects effects, OmniPackMenu openMenu) {
         long cap = effects.totalEnergyStorage;
         if (cap <= 0) return;
 
+        long stored = getStoredEU(packStack);
+        if (stored <= 0) return;
+
+        var energyCfg = ConfigHolder.INSTANCE.compat.energy;
+        boolean feEnabled = energyCfg.enableFEConverters;
+        int euToFe = Math.max(1, energyCfg.euToFeRatio);
+
         OmniPackInventory packInv = openMenu != null ? openMenu.getPackInventory() :
                 OmniPackInventory.fromItem(packStack, effects.totalSlots);
 
-        long stored = getStoredEU(packStack);
         boolean dirty = false;
 
         for (int i = 0; i < packInv.getContainerSize(); i++) {
+            if (stored <= 0) break;
             ItemStack content = packInv.getItem(i);
             if (content.isEmpty()) continue;
 
@@ -158,15 +232,8 @@ public class OmniPackTickHandler {
             IElectricItem electric = content.getCapability(GTCapability.CAPABILITY_ELECTRIC_ITEM)
                     .resolve().orElse(null);
             if (electric != null) {
-                if (electric.canProvideChargeExternally()) {
-                    if (stored < cap) {
-                        long pulled = electric.discharge(cap - stored, Integer.MAX_VALUE, false, true, false);
-                        if (pulled > 0) {
-                            stored += pulled;
-                            dirty = true;
-                        }
-                    }
-                } else if (electric.chargeable() && stored > 0) {
+                // batteries that provide charge are left alone, only plain chargeable items get charged
+                if (!electric.canProvideChargeExternally() && electric.chargeable()) {
                     long toCharge = Math.min(stored, electric.getTransferLimit());
                     long charged = electric.charge(toCharge, Integer.MAX_VALUE, false, false);
                     if (charged > 0) {
@@ -177,25 +244,21 @@ public class OmniPackTickHandler {
                 continue;
             }
 
-            // non-eu capable
-            IEnergyStorage forgeEnergy = content.getCapability(ForgeCapabilities.ENERGY)
-                    .resolve().orElse(null);
-            if (forgeEnergy == null) continue;
+            // Forge Energy, converted with GTCEu's EU -> FE ratio
+            if (!feEnabled) continue;
+            IEnergyStorage fe = content.getCapability(ForgeCapabilities.ENERGY).resolve().orElse(null);
+            if (fe == null || fe.canExtract() || !fe.canReceive()) continue;
 
-            if (forgeEnergy.canExtract()) {
-                if (stored < cap) {
-                    int pulled = forgeEnergy.extractEnergy((int) Math.min(cap - stored, Integer.MAX_VALUE), false);
-                    if (pulled > 0) {
-                        stored += pulled;
-                        dirty = true;
-                    }
-                }
-            } else if (forgeEnergy.canReceive() && stored > 0) {
-                int charged = forgeEnergy.receiveEnergy((int) Math.min(stored, Integer.MAX_VALUE), false);
-                if (charged > 0) {
-                    stored -= charged;
-                    dirty = true;
-                }
+            long euBudget = Math.min(stored, Integer.MAX_VALUE / euToFe);
+            int accepted = fe.receiveEnergy((int) (euBudget * euToFe), true);
+            long euUsed = accepted / euToFe; // whole EU only
+            if (euUsed <= 0) continue;
+
+            int sent = fe.receiveEnergy((int) (euUsed * euToFe), false);
+            long used = Math.min(stored, (sent + euToFe - 1L) / euToFe);
+            if (used > 0) {
+                stored -= used;
+                dirty = true;
             }
         }
 
@@ -240,20 +303,24 @@ public class OmniPackTickHandler {
     // Jetpack
     // Tier I: gentle lift (+0.12/tick, cap 0.30), low EU cost.
     // Tier II: strong thrust (+0.20/tick, cap 0.50), higher EU cost.
-    private static void applyJetpack(Player player, ItemStack packStack, UpgradeEffects effects) {
+    private static void applyJetpack(Player player, ItemStack packStack, UpgradeEffects effects,
+                                     OmniPackInventory upgInv) {
         if (!effects.hasJetpack1 && !effects.hasJetpack2) return;
 
         boolean jumping = CPacketKeyState.isJumping(player);
         boolean sneaking = CPacketKeyState.isSneaking(player);
         boolean inAir = !player.onGround();
 
-        int speedLevel = effects.hasJetpack2 ? JetpackConfigHelper.getSpeed(packStack) : 3;
-        int thrustLevel = effects.hasJetpack2 ? JetpackConfigHelper.getThrust(packStack) : 3;
+        // Jetpack II settings live on the module stack, Jetpack I is fixed at 3/3
+        ItemStack jetpackModule = effects.hasJetpack2 ? JetpackConfigHelper.findModule(upgInv) : ItemStack.EMPTY;
+        int speedLevel = jetpackModule.isEmpty() ? 3 : JetpackConfigHelper.getSpeed(jetpackModule);
+        int thrustLevel = jetpackModule.isEmpty() ? 3 : JetpackConfigHelper.getThrust(jetpackModule);
 
         if (!inAir && !jumping) return;
 
         GregPacksConfig.UpgradeConfigs cfg = GregPacksConfig.INSTANCE.ModuleValues;
-        long baseCost = (long) cfg.jetpackModule2EUCost * ((speedLevel + thrustLevel) / 2);
+        int cfgCost = effects.hasJetpack2 ? cfg.jetpackModule2EUCost : cfg.jetpackModule1EUCost;
+        long baseCost = JetpackConfigHelper.ascendCost(cfgCost, speedLevel, thrustLevel);
         double thrustY = (effects.hasJetpack2 ? 0.35 : 0.20) * (thrustLevel / 3.0);
         double capY = (effects.hasJetpack2 ? 1.00 : 0.50) * (thrustLevel / 3.0);
         float speedH = (effects.hasJetpack2 ? 0.35f : 0.14f) * (speedLevel / 3.0f);
@@ -274,7 +341,7 @@ public class OmniPackTickHandler {
             double accel = thrustY * (vel.y > -0.3 ? 2.5 : 1.0);
             newY = Math.max(vel.y - accel, -capY);
         } else {
-            long hoverCost = Math.max(1, baseCost / 4);
+            long hoverCost = JetpackConfigHelper.hoverCost(cfgCost, speedLevel, thrustLevel);
             if (storedEU < hoverCost) return;
             newY = Math.max(Math.min(vel.y + 0.08, 0.0), -0.08);
             setStoredEU(packStack, storedEU - hoverCost, effects.totalEnergyStorage);

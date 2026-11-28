@@ -9,8 +9,8 @@ import com.astrogreg.gregpacks.item.UpgradeItem;
 import com.astrogreg.gregpacks.item.UpgradeType;
 import com.astrogreg.gregpacks.registry.GregPacksMenus;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
-import com.astrogreg.gregpacks.util.JetpackConfigHelper;
-import com.astrogreg.gregpacks.util.MagnetConfigHelper;
+import com.astrogreg.gregpacks.config.JetpackConfigHelper;
+import com.astrogreg.gregpacks.config.MagnetConfigHelper;
 import com.astrogreg.gregpacks.util.PackTags;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -561,9 +561,9 @@ public class OmniPackMenu extends AbstractContainerMenu {
         syncEnergyData();
         super.broadcastChanges();
 
-        ItemStack pack = getActiveStack();
-        jetpackData.set(0, pack.isEmpty() ? 3 : JetpackConfigHelper.getSpeed(pack));
-        jetpackData.set(1, pack.isEmpty() ? 3 : JetpackConfigHelper.getThrust(pack));
+        ItemStack jetpack = JetpackConfigHelper.findModule(upgradeInventory);
+        jetpackData.set(0, jetpack.isEmpty() ? 3 : JetpackConfigHelper.getSpeed(jetpack));
+        jetpackData.set(1, jetpack.isEmpty() ? 3 : JetpackConfigHelper.getThrust(jetpack));
     }
 
     public void setServerPlayer(ServerPlayer player) {

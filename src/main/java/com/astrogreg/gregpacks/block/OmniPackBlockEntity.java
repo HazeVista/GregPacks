@@ -2,6 +2,7 @@ package com.astrogreg.gregpacks.block;
 
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.forge.GTCapability;
+import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -90,34 +91,36 @@ public class OmniPackBlockEntity extends BlockEntity implements MenuProvider {
             }
         });
 
-        // eu
         this.gtEnergyCap = LazyOptional.of(() -> new OmniPackGTEnergyContainer(this, tier));
 
-        // FE
         this.forgeEnergyCap = LazyOptional.of(() -> new IEnergyStorage() {
 
+            // Amounts follow GTCEu config ratios
             @Override
             public int getEnergyStored() {
-                return (int) Math.min(storedEU, Integer.MAX_VALUE);
+                return toFe(storedEU);
             }
 
             @Override
             public int getMaxEnergyStored() {
-                return (int) Math.min(
-                        new UpgradeEffects(tier, upgradeInventory).totalEnergyStorage,
-                        Integer.MAX_VALUE);
+                return toFe(new UpgradeEffects(tier, upgradeInventory).totalEnergyStorage);
             }
 
             @Override
             public int receiveEnergy(int max, boolean sim) {
                 long cap = new UpgradeEffects(tier, upgradeInventory).totalEnergyStorage;
                 long space = cap - storedEU;
-                int accepted = (int) Math.min(space, max);
-                if (!sim && accepted > 0) {
-                    storedEU += accepted;
+                if (space <= 0 || max <= 0) return 0;
+
+                int feToEu = Math.max(1, ConfigHolder.INSTANCE.compat.energy.feToEuRatio);
+                long euAccepted = Math.min(space, max / feToEu); // whole EU only
+                if (euAccepted <= 0) return 0;
+
+                if (!sim) {
+                    storedEU += euAccepted;
                     setChanged();
                 }
-                return accepted;
+                return (int) (euAccepted * feToEu); // never more than max
             }
 
             @Override
@@ -135,6 +138,12 @@ public class OmniPackBlockEntity extends BlockEntity implements MenuProvider {
                 return true;
             }
         });
+    }
+
+    private static int toFe(long eu) {
+        long ratio = Math.max(1, ConfigHolder.INSTANCE.compat.energy.euToFeRatio);
+        if (eu > Integer.MAX_VALUE / ratio) return Integer.MAX_VALUE;
+        return (int) (eu * ratio);
     }
 
     @Override

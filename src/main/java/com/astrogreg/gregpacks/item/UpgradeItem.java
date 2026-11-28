@@ -7,7 +7,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
 import com.astrogreg.gregpacks.config.GregPacksConfig;
-import com.astrogreg.gregpacks.util.MagnetConfigHelper;
+import com.astrogreg.gregpacks.config.JetpackConfigHelper;
+import com.astrogreg.gregpacks.config.MagnetConfigHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,6 +45,17 @@ public class UpgradeItem extends Item {
             tooltipComponents.add(Component.translatable(MagnetConfigHelper.isFilterOn(stack) ?
                     "item.gregpacks.module.tooltip.filter_active" : "item.gregpacks.module.tooltip.filter_inactive"));
         }
+
+        // Jetpack II: live drain from the module's own speed/thrust settings (client config values)
+        if (upgradeType == UpgradeType.JETPACK_II && GregPacksConfig.INSTANCE != null) {
+            int cost = GregPacksConfig.INSTANCE.ModuleValues.jetpackModule2EUCost;
+            int speed = JetpackConfigHelper.getSpeed(stack);
+            int thrust = JetpackConfigHelper.getThrust(stack);
+            tooltipComponents.add(Component.translatable("item.gregpacks.module.tooltip.jetpack_ascend",
+                    String.valueOf(JetpackConfigHelper.ascendCost(cost, speed, thrust))));
+            tooltipComponents.add(Component.translatable("item.gregpacks.module.tooltip.jetpack_hover",
+                    String.valueOf(JetpackConfigHelper.hoverCost(cost, speed, thrust))));
+        }
     }
 
     // Reads the client's config values
@@ -69,7 +81,6 @@ public class UpgradeItem extends Item {
             case MAGNET_II -> radius(MagnetConfigHelper.getRange(stack, cfg.magnetModule2Radius));
 
             case JETPACK_I -> cost(cfg.jetpackModule1EUCost);
-            case JETPACK_II -> cost(cfg.jetpackModule2EUCost);
 
             default -> null;
         };

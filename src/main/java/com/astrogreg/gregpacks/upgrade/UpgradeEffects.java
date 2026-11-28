@@ -7,7 +7,7 @@ import com.astrogreg.gregpacks.inventory.OmniPackInventory;
 import com.astrogreg.gregpacks.item.OmniPackTier;
 import com.astrogreg.gregpacks.item.UpgradeItem;
 import com.astrogreg.gregpacks.item.UpgradeType;
-import com.astrogreg.gregpacks.util.MagnetConfigHelper;
+import com.astrogreg.gregpacks.config.MagnetConfigHelper;
 
 import java.util.EnumSet;
 import java.util.Set;

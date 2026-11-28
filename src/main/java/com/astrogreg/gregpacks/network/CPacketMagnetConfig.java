@@ -8,7 +8,7 @@ import net.minecraftforge.network.NetworkEvent;
 import com.astrogreg.gregpacks.config.GregPacksConfig;
 import com.astrogreg.gregpacks.inventory.OmniPackInventory;
 import com.astrogreg.gregpacks.inventory.OmniPackMenu;
-import com.astrogreg.gregpacks.util.MagnetConfigHelper;
+import com.astrogreg.gregpacks.config.MagnetConfigHelper;
 
 import java.util.function.Supplier;
 

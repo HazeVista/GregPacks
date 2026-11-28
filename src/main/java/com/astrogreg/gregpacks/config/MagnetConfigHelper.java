@@ -1,4 +1,4 @@
-package com.astrogreg.gregpacks.util;
+package com.astrogreg.gregpacks.config;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;

@@ -20,7 +20,7 @@ import com.astrogreg.gregpacks.network.CPacketFluidInteract;
 import com.astrogreg.gregpacks.network.CPacketJetpackConfig;
 import com.astrogreg.gregpacks.network.CPacketMagnetConfig;
 import com.astrogreg.gregpacks.network.GregPacksNetwork;
-import com.astrogreg.gregpacks.util.MagnetConfigHelper;
+import com.astrogreg.gregpacks.config.MagnetConfigHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

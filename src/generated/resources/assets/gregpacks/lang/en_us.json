@@ -79,5 +79,5 @@
   "message.gregpacks.maintenance_failed": "\"Some problems fixed, missing tools in pack!\"",
   "message.gregpacks.maintenance_fixed": "\"Maintenance fixed!\"",
   "message.gregpacks.module_limit": "§cOnly one module of this type can be installed in an OmniPack.",
-  "message.gregpacks.pack_equipped": "Omnipack equipped in your back slot"
+  "message.gregpacks.pack_equipped": "Omnipack equipped to your back slot"
 }

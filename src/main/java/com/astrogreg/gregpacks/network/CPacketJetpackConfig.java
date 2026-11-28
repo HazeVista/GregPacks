@@ -6,7 +6,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 
 import com.astrogreg.gregpacks.inventory.OmniPackMenu;
-import com.astrogreg.gregpacks.util.JetpackConfigHelper;
+import com.astrogreg.gregpacks.config.JetpackConfigHelper;
 
 import java.util.function.Supplier;
 
@@ -34,16 +34,20 @@ public class CPacketJetpackConfig {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
             if (!(player.containerMenu instanceof OmniPackMenu menu)) return;
-            ItemStack pack = menu.getActiveStack();
-            if (pack.isEmpty()) return;
 
+            // only the Jetpack II module inside the pack this player has open can be edited
+            ItemStack module = JetpackConfigHelper.findModule(menu.getUpgradeInventory());
+            if (module.isEmpty()) return;
+
+            int delta = Integer.signum(msg.delta);
             if (msg.isSpeed) {
-                int cur = JetpackConfigHelper.getSpeed(pack);
-                JetpackConfigHelper.setSpeed(pack, cur + msg.delta);
+                JetpackConfigHelper.setSpeed(module, JetpackConfigHelper.getSpeed(module) + delta);
             } else {
-                int cur = JetpackConfigHelper.getThrust(pack);
-                JetpackConfigHelper.setThrust(pack, cur + msg.delta);
+                JetpackConfigHelper.setThrust(module, JetpackConfigHelper.getThrust(module) + delta);
             }
+
+            // saves the upgrades to the pack and syncs changed module stack to the client
+            menu.getUpgradeInventory().setChanged();
         });
         ctx.get().setPacketHandled(true);
     }
