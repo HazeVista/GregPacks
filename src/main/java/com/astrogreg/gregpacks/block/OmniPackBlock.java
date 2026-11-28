@@ -1,8 +1,10 @@
 package com.astrogreg.gregpacks.block;
 
+import com.astrogreg.gregpacks.inventory.OmniPackMenu;
 import com.astrogreg.gregpacks.upgrade.UpgradeEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -29,6 +31,7 @@ import net.minecraftforge.network.NetworkHooks;
 
 import com.astrogreg.gregpacks.item.OmniPackTier;
 import org.jetbrains.annotations.Nullable;
+import top.theillusivec4.curios.api.CuriosApi;
 
 @SuppressWarnings("all")
 public class OmniPackBlock extends BaseEntityBlock {
@@ -126,6 +129,66 @@ public class OmniPackBlock extends BaseEntityBlock {
                     });
         }
         return InteractionResult.SUCCESS;
+    }
+
+    // Left-click pickup: the block breaks instantly in survival...
+    @Override
+    public float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+        return 1.0F;
+    }
+
+    // ...and the pack goes straight to the player: Shift = Curios back slot, otherwise inventory.
+    // Creative keeps vanilla behaviour (block just breaks, nothing is given).
+    @Override
+    public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof OmniPackBlockEntity be) {
+            // Close first so cursor items / crafting grid are returned and saved before we snapshot the pack.
+            closeOpenMenus((ServerLevel) level, be);
+
+            if (!player.isCreative()) {
+                ItemStack packItem = be.toItemStack();
+                be.setPickedUp(true);
+                level.removeBlock(pos, false);
+
+                boolean equipped = player.isShiftKeyDown() && equipInCuriosBack(player, packItem);
+                if (equipped && player instanceof ServerPlayer sp) {
+                    sp.displayClientMessage(Component.translatable("message.gregpacks.pack_equipped"), true);
+                }
+                if (!equipped) {
+                    if (!player.getInventory().add(packItem)) {
+                        player.drop(packItem, false);
+                    }
+                }
+            }
+        }
+        // vanilla super spawns the break particles + sound (on both sides); skip it for pickups like right-click does
+        if (player.isCreative()) {
+            super.playerWillDestroy(level, pos, state, player);
+        }
+    }
+
+    private static void closeOpenMenus(ServerLevel level, OmniPackBlockEntity be) {
+        for (ServerPlayer sp : level.players()) {
+            if (sp.containerMenu instanceof OmniPackMenu menu && menu.getSourceBlockEntity() == be) {
+                sp.closeContainer();
+            }
+        }
+    }
+
+    // Puts the pack in the first empty Curios "back" slot. Returns false if there is none.
+    private static boolean equipInCuriosBack(Player player, ItemStack pack) {
+        return CuriosApi.getCuriosInventory(player).map(inv -> {
+            var handler = inv.getCurios().get("back");
+            if (handler == null) return false;
+            var stacks = handler.getStacks();
+            for (int i = 0; i < stacks.getSlots(); i++) {
+                if (stacks.getStackInSlot(i).isEmpty()) {
+                    stacks.setStackInSlot(i, pack);
+                    return true;
+                }
+            }
+            return false;
+        }).orElse(false);
     }
 
     @Override

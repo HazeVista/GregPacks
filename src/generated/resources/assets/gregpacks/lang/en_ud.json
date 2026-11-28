@@ -8,6 +8,7 @@
   "container.gregpacks.tab.crafting": "buıʇɟɐɹƆ",
   "container.gregpacks.tab.inventory": "ʎɹoʇuǝʌuI ʞɔɐdıuɯO",
   "container.gregpacks.tab.jetpack": "sbuıʇʇǝS ʞɔɐdʇǝſ",
+  "container.gregpacks.tab.magnet": "sbuıʇʇǝS ʇǝubɐW",
   "container.gregpacks.tab.upgrades": "sǝןnpoW ǝpɐɹbd∩",
   "container.gregpacks.upgrades": "sǝןnpoW ǝpɐɹbd∩",
   "gregpacks.jade.energy": "∩Ǝ %s / %s :ʎbɹǝuƎ",
@@ -52,6 +53,8 @@
   "item.gregpacks.maintenance_module.tooltip": "sʇuǝɯǝɹınbǝɹ ǝɔuɐuǝʇuıɐɯ ʎɟsıʇɐs oʇ ʞɔɐԀıuɯO ɹnoʎ ǝsn oʇ noʎ sʍoןןɐ ʇɐɥʇ ǝןnpoɯ ǝpɐɹbdn uⱯ",
   "item.gregpacks.module.tooltip.energy_cost": "ʇ/∩Ǝ %s ɹ§:uoıʇdɯnsuoƆ ʎbɹǝuƎɔ§",
   "item.gregpacks.module.tooltip.energy_multiplier": "x%s ɹ§:ɹǝıןdıʇןnW ʎʇıɔɐdɐƆ ʎbɹǝuƎɔ§",
+  "item.gregpacks.module.tooltip.filter_active": "ǝʌıʇɔⱯ buıɹǝʇןıℲɐ§",
+  "item.gregpacks.module.tooltip.filter_inactive": "ǝʌıʇɔɐuI buıɹǝʇןıℲㄥ§",
   "item.gregpacks.module.tooltip.fluid_multiplier": "x%s ɹ§:ɹǝıןdıʇןnW ʎʇıɔɐdɐƆ pınןℲ6§",
   "item.gregpacks.module.tooltip.item_slots": "sʇoןs %s ɹ§:ǝsɐǝɹɔuI ʇoןS ɯǝʇI9§",
   "item.gregpacks.module.tooltip.magnet_radius": "sʞɔoןq %s ɹ§:snıpɐᴚ dnʞɔıԀq§",
@@ -75,5 +78,6 @@
   "key.gregpacks.open_omnipack": "ʎɹoʇuǝʌuI ʞɔɐԀıuɯO uǝdO",
   "message.gregpacks.maintenance_failed": "\"¡ʞɔɐd uı sןooʇ buıssıɯ 'pǝxıɟ sɯǝןqoɹd ǝɯoS\"",
   "message.gregpacks.maintenance_fixed": "\"¡pǝxıɟ ǝɔuɐuǝʇuıɐW\"",
-  "message.gregpacks.module_limit": "˙ʞɔɐԀıuɯO uɐ uı pǝןןɐʇsuı ǝq uɐɔ ǝdʎʇ sıɥʇ ɟo ǝןnpoɯ ǝuo ʎןuOɔ§"
+  "message.gregpacks.module_limit": "˙ʞɔɐԀıuɯO uɐ uı pǝןןɐʇsuı ǝq uɐɔ ǝdʎʇ sıɥʇ ɟo ǝןnpoɯ ǝuo ʎןuOɔ§",
+  "message.gregpacks.pack_equipped": "ʇoןs ʞɔɐq ɹnoʎ uı pǝddınbǝ ʞɔɐdıuɯO"
 }

@@ -21,13 +21,13 @@ public class GregPacksLangHandler {
         provider.add("container.gregpacks.upgrades", "Upgrade Modules");
         provider.add("container.gregpacks.tab.crafting", "Crafting");
         provider.add("container.gregpacks.tab.jetpack", "Jetpack Settings");
+        provider.add("container.gregpacks.tab.magnet", "Magnet Settings");
 
         // Molds
         provider.add("item.gregpacks.module_extruder_mold.tooltip", "Extruder shape for making Module Bases");
         provider.add("item.gregpacks.module_casting_mold.tooltip", "Mold for making Module Bases");
 
         // Upgrade Modules
-        provider.add("message.gregpacks.module_limit", "§cOnly one module of this type can be installed in an OmniPack.");
         provider.add("item.gregpacks.item_module_1.tooltip",
                 "An upgrade module that adds more item slots to your OmniPack");
         provider.add("item.gregpacks.item_module_2.tooltip",
@@ -69,13 +69,16 @@ public class GregPacksLangHandler {
         provider.add("item.gregpacks.module.tooltip.energy_multiplier", "§cEnergy Capacity Multiplier:§r %sx");
         provider.add("item.gregpacks.module.tooltip.energy_cost", "§cEnergy Consumption:§r %s EU/t");
         provider.add("item.gregpacks.module.tooltip.magnet_radius", "§bPickup Radius:§r %s blocks");
+        provider.add("item.gregpacks.module.tooltip.filter_active", "§aFiltering Active");
+        provider.add("item.gregpacks.module.tooltip.filter_inactive", "§7Filtering Inactive");
 
         // Messages
         provider.add("message.gregpacks.maintenance_fixed",
                 "\"Maintenance fixed!\"");
-
         provider.add("message.gregpacks.maintenance_failed",
                 "\"Some problems fixed, missing tools in pack!\"");
+        provider.add("message.gregpacks.module_limit", "§cOnly one module of this type can be installed in an OmniPack.");
+        provider.add("message.gregpacks.pack_equipped", "Omnipack equipped to your back slot");
 
         // keybinds
         provider.add("key.gregpacks.open_omnipack", "Open OmniPack Inventory");

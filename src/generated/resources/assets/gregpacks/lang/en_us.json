@@ -8,6 +8,7 @@
   "container.gregpacks.tab.crafting": "Crafting",
   "container.gregpacks.tab.inventory": "Omnipack Inventory",
   "container.gregpacks.tab.jetpack": "Jetpack Settings",
+  "container.gregpacks.tab.magnet": "Magnet Settings",
   "container.gregpacks.tab.upgrades": "Upgrade Modules",
   "container.gregpacks.upgrades": "Upgrade Modules",
   "gregpacks.jade.energy": "Energy: %s / %s EU",
@@ -52,6 +53,8 @@
   "item.gregpacks.maintenance_module.tooltip": "An upgrade module that allows you to use your OmniPack to satisfy maintenance requirements",
   "item.gregpacks.module.tooltip.energy_cost": "§cEnergy Consumption:§r %s EU/t",
   "item.gregpacks.module.tooltip.energy_multiplier": "§cEnergy Capacity Multiplier:§r %sx",
+  "item.gregpacks.module.tooltip.filter_active": "§aFiltering Active",
+  "item.gregpacks.module.tooltip.filter_inactive": "§7Filtering Inactive",
   "item.gregpacks.module.tooltip.fluid_multiplier": "§9Fluid Capacity Multiplier:§r %sx",
   "item.gregpacks.module.tooltip.item_slots": "§6Item Slot Increase:§r %s slots",
   "item.gregpacks.module.tooltip.magnet_radius": "§bPickup Radius:§r %s blocks",
@@ -75,5 +78,6 @@
   "key.gregpacks.open_omnipack": "Open OmniPack Inventory",
   "message.gregpacks.maintenance_failed": "\"Some problems fixed, missing tools in pack!\"",
   "message.gregpacks.maintenance_fixed": "\"Maintenance fixed!\"",
-  "message.gregpacks.module_limit": "§cOnly one module of this type can be installed in an OmniPack."
+  "message.gregpacks.module_limit": "§cOnly one module of this type can be installed in an OmniPack.",
+  "message.gregpacks.pack_equipped": "Omnipack equipped in your back slot"
 }
